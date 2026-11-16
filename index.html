@@ -23,7 +23,7 @@ main{min-width:0}.topbar{height:72px;background:#fff;border-bottom:1px solid var
 <body>
 <div class="shell">
 <aside>
- <div class="brand"><div class="brandmark">F</div><div><strong>FreeResearch</strong><small>Open scientific workspace</small></div></div>
+ <div class="brand"><div class="brandmark">F</div><div><strong>FreeResearch</strong><small>Open scientific workspace</small></div></div><div style="margin:-17px 10px 0;padding:10px;border-left:2px solid #3e9ee8;color:#aebfd5;font-size:11px;line-height:1.5">An initiative by<br><strong style="color:#fff">Arkapravo Das</strong><br>M.Sc. Zoology, University of Calcutta</div>
  <div class="navgroup"><div class="navlabel">Workspace</div><nav class="nav">
   <button class="active" data-view="dashboard"><span class="ico">▦</span>Dashboard</button>
   <button data-view="math"><span class="ico">∫</span>Mathematical modelling</button>
@@ -41,9 +41,9 @@ main{min-width:0}.topbar{height:72px;background:#fff;border-bottom:1px solid var
  <header class="topbar"><div class="crumb">FreeResearch <span style="color:#b9c4d1">/</span> <span id="crumb">Dashboard</span></div><div class="topright"><span class="freepill">100% FREE CORE</span><div class="avatar">FR</div></div></header>
  <div class="content">
   <section id="dashboard" class="view active">
-   <div class="eyebrow">Research workspace</div><div class="heading"><div><h1>Good science starts with accessible tools.</h1><p>A unified, browser-based toolkit for researchers, PhD scholars, postdoctoral fellows and scientists. Run core analyses without installing desktop software.</p></div><button class="btn" onclick="showView('math')">Open a laboratory ↗</button></div>
+   <div class="eyebrow">Research workspace</div><div class="heading"><div><h1>Good science starts with accessible tools.</h1><p style="font-weight:700;color:#315477;margin:0 0 8px">An initiative by Arkapravo Das · M.Sc. Zoology, University of Calcutta</p><p>A unified, browser-based toolkit for researchers, PhD scholars, postdoctoral fellows and scientists. Run core analyses without installing desktop software.</p></div><button class="btn" onclick="showView('math')">Open a laboratory ↗</button></div>
    <div class="grid stats">
-    <div class="card stat"><div><div class="num">02</div><div class="label">Working laboratories</div></div><div class="bubble">⚗</div></div>
+    <div class="card stat"><div><div class="num">03</div><div class="label">Working laboratories</div></div><div class="bubble">⚗</div></div>
     <div class="card stat"><div><div class="num">100%</div><div class="label">Browser-based MVP</div></div><div class="bubble">⌘</div></div>
     <div class="card stat"><div><div class="num">0</div><div class="label">Paid dependencies</div></div><div class="bubble">♧</div></div>
     <div class="card stat"><div><div class="num">01</div><div class="label">Unified workspace</div></div><div class="bubble">▦</div></div>
@@ -76,7 +76,7 @@ main{min-width:0}.topbar{height:72px;background:#fff;border-bottom:1px solid var
    </div>
   </section>
   <section id="bio" class="view">
-   <div class="eyebrow">Laboratory 02</div><div class="heading"><div><h1>Biostatistics &amp; Biodiversity</h1><p>Paste or enter a species-abundance table to calculate alpha-diversity indices and non-parametric richness estimates.</p></div><button class="btn secondary" onclick="showView('dashboard')">← Dashboard</button></div>
+   <div class="eyebrow">Laboratory 02</div><div class="heading"><div><h1>Biostatistics &amp; Biodiversity</h1><p>Explore ecological diversity, hypothesis testing, correlation, regression, Bayesian inference and multivariate statistics.</p></div><button class="btn secondary" onclick="showView('dashboard')">← Dashboard</button></div>
    <div class="workspace">
     <div class="card control"><h3>Community data</h3><p class="sub">One species and its observed count per row.</p>
      <div class="field"><label>Dataset name</label><input id="dataset" value="Community sample"></div>
@@ -102,8 +102,48 @@ Species I,1</textarea><div class="hint">Accepted: CSV with a header and two colu
     </div>
    </div>
   </section>
+
+   <div class="card" style="margin-top:18px">
+    <div class="resulttop"><div><h2 class="sectiontitle">Statistical Analysis Studio</h2><p class="sub">General-purpose tests, multivariate analysis, Bayesian estimation and publication-style plots. All calculations run locally in your browser.</p></div><span class="tag">Expanded toolkit</span></div>
+    <div class="workspace">
+     <div class="control">
+      <div class="field"><label>Analysis</label><select id="statMethod">
+       <option value="welch">Independent t-test (Welch)</option><option value="pooled">Independent t-test (pooled variance)</option><option value="onesample">One-sample t-test</option><option value="paired">Paired t-test</option><option value="anova">One-way ANOVA</option><option value="correlation">Pearson correlation</option><option value="spearman">Spearman rank correlation</option><option value="regression">Simple linear regression</option><option value="bayes">Bayesian proportion (Beta-Binomial)</option><option value="pca">Principal component analysis (PCA)</option><option value="cluster">Hierarchical cluster analysis</option>
+      </select></div>
+      <div class="field"><label>Data (CSV or tab-separated)</label><textarea id="statData" spellcheck="false">Group,Value
+Control,12
+Control,14
+Control,13
+Control,15
+Treatment,18
+Treatment,20
+Treatment,17
+Treatment,19</textarea><div class="hint" id="statHint">For t-tests and ANOVA: two columns, Group and Value. First row may contain headers.</div></div>
+      <div class="field" id="statParamWrap"><label id="statParamLabel">Hypothesised mean (μ₀)</label><input id="statParam" type="number" value="0" step="any"></div>
+      <div class="row2"><button class="btn secondary" onclick="loadStatExample()">Load example</button><button class="btn" onclick="runStat()">Run analysis</button></div>
+      <div class="field"><label>Graph type</label><select id="statPlot"><option value="auto">Automatic</option><option value="bar">Bar plot</option><option value="hist">Histogram</option><option value="box">Box plot</option><option value="line">Line plot</option><option value="scatter">Scatter plot</option><option value="regression">Scatter + regression</option></select></div>
+      <div class="notice">Use independent biological replicates. Check assumptions, study design and data distribution before selecting a test. Statistical significance does not establish biological importance or causation.</div>
+     </div>
+     <div class="results">
+      <div class="resulttop"><div><h3 id="statTitle">Analysis output</h3><p class="sub" id="statSub">Enter data and run an analysis</p></div><button class="btn ghost" onclick="downloadStat()">↓ Export</button></div>
+      <div class="metrics" id="statMetrics"></div>
+      <div class="chartwrap"><canvas id="statChart"></canvas></div>
+      <div id="statOutput"></div>
+     </div>
+    </div>
+   </div>
+   <div class="card" style="margin-top:18px">
+    <h3 class="sectiontitle">Ecological community analysis — extended roadmap</h3>
+    <p class="sub">Additional methods represented in your uploaded biodiversity workbook are being incorporated as dedicated modules.</p>
+    <div class="grid labgrid">
+     <div><strong>Abundance &amp; diversity</strong><p class="hint">Berger–Parker, McIntosh, Brillouin, Q statistic, Shannon comparisons and pooled Pielou evenness.</p></div>
+     <div><strong>Sampling &amp; richness</strong><p class="hint">Rarefaction, jackknife richness estimation, confidence intervals and sample-coverage comparisons.</p></div>
+     <div><strong>Community structure</strong><p class="hint">Rank-abundance curves, beta diversity, abundance-distribution models and chi-square goodness-of-fit.</p></div>
+    </div>
+    <div class="notice">These extended ecological methods are listed as planned until their individual calculations and validation tests are implemented. The existing alpha-diversity calculator remains available above.</div>
+   </div>
   <section id="coming" class="view"><div class="eyebrow">Development roadmap</div><div class="heading"><div><h1>More laboratories are planned</h1><p>We will add these modules incrementally, prioritising free, browser-compatible and scientifically transparent implementations.</p></div><button class="btn secondary" onclick="showView('dashboard')">← Dashboard</button></div><div class="card"><h3>Planned modules</h3><p class="sub">The dashboard currently provides working mathematical modelling and biodiversity analysis tools. Other modules are roadmap placeholders, not active calculation engines yet.</p><ul><li>QM/MM learning utilities and molecular structure visualisation</li><li>Docking result visualisation and MD trajectory analysis</li><li>Primer design, reverse complement and ePCR utilities</li><li>Virtual agarose/PAGE gel and Southern/Western blot studio</li><li>Ant colony optimisation and genetic algorithm visualisation</li><li>Bayesian inference, sampling, rarefaction and multivariate statistics</li><li>EasyQGIS-style spatial analysis</li></ul></div></section>
-  <div class="footer">FreeResearch · Open scientific workspace · Browser MVP · No account or server required for these tools</div>
+  <div class="footer">FreeResearch · An initiative by Arkapravo Das (M.Sc. Zoology, University of Calcutta) · Open scientific workspace · Browser-based</div>
  </div>
 </main>
 </div>
@@ -140,6 +180,138 @@ function analyseBio(){try{let data=parseAbundance(),counts=data.map(x=>x.count),
 function drawBio(data){let c=$('biochart'),ctx=c.getContext('2d'),W=c.width=c.clientWidth*devicePixelRatio,H=c.height=c.clientHeight*devicePixelRatio;ctx.scale(devicePixelRatio,devicePixelRatio);let w=c.clientWidth,h=c.clientHeight,pad={l:42,r:14,t:15,b:55},pw=w-pad.l-pad.r,ph=h-pad.t-pad.b,max=Math.max(...data.map(x=>x.count))*1.12;ctx.clearRect(0,0,w,h);ctx.font='10px system-ui';ctx.fillStyle='#77869a';ctx.strokeStyle='#e7edf4';for(let j=0;j<=4;j++){let y=pad.t+ph*j/4;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();ctx.fillText(fmt(max*(1-j/4)),3,y+3)}let bw=Math.max(3,pw/data.length*.62);data.forEach((d,i)=>{let x=pad.l+(i+.5)*pw/data.length,y=pad.t+ph-d.count/max*ph;ctx.fillStyle='#279b91';ctx.fillRect(x-bw/2,y,bw,pad.t+ph-y);ctx.save();ctx.translate(x,h-10);ctx.rotate(-.5);ctx.textAlign='right';ctx.fillStyle='#617187';ctx.fillText(d.name,0,0);ctx.restore()})}
 function showBioTab(tab){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));let r=bioResult;if(!r)return;if(tab==='indices')$('biotab').innerHTML=`<div class="tablewrap"><table><thead><tr><th>Metric</th><th>Estimate</th><th>Interpretation</th></tr></thead><tbody><tr><td>Observed richness</td><td>${r.S}</td><td>Number of observed taxa</td></tr><tr><td>Shannon H′</td><td>${r.H.toFixed(4)}</td><td>Combines richness and relative abundance</td></tr><tr><td>Simpson dominance D</td><td>${r.D.toFixed(4)}</td><td>Probability that two random individuals belong to the same taxon</td></tr><tr><td>Simpson diversity 1−D</td><td>${r.oneMinusD.toFixed(4)}</td><td>Higher values indicate greater diversity</td></tr><tr><td>Inverse Simpson 1/D</td><td>${r.reciprocal.toFixed(4)}</td><td>Effective number of common taxa</td></tr><tr><td>Chao1</td><td>${r.chao.toFixed(4)}</td><td>Abundance-based estimator of asymptotic richness</td></tr><tr><td>Pielou J′</td><td>${r.J.toFixed(4)}</td><td>Shannon evenness, H′/ln(S)</td></tr><tr><td>Singletons (F1)</td><td>${r.f1}</td><td>Taxa represented by one individual</td></tr><tr><td>Doubletons (F2)</td><td>${r.f2}</td><td>Taxa represented by two individuals</td></tr></tbody></table></div>`;else if(tab==='abundance')$('biotab').innerHTML=`<div class="tablewrap"><table><thead><tr><th>Taxon</th><th>Abundance</th><th>Relative abundance</th></tr></thead><tbody>${r.data.map(x=>`<tr><td>${x.name}</td><td>${x.count}</td><td>${(100*x.count/r.N).toFixed(2)}%</td></tr>`).join('')}</tbody></table></div>`;else $('biotab').innerHTML=`<p style="font-size:12px;color:#596b80">This community contains ${r.S} observed taxa across ${r.N} individuals. Shannon diversity is ${r.H.toFixed(3)} and Pielou evenness is ${r.J.toFixed(3)}. Chao1 estimates approximately ${r.chao.toFixed(2)} taxa under the abundance-based estimator. ${r.f1} singleton(s) and ${r.f2} doubleton(s) contribute to the estimate. Compare communities only after considering sampling effort, habitat coverage and consistent taxonomic identification.</p><p class="hint">Chao1 bias-corrected form used when F2 = 0: Sobs + F1(F1−1)/2F2 is replaced by Sobs + F1(F1−1)/2. When F2 &gt; 0: Sobs + F1²/(2F2).</p>`}
 document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>showBioTab(b.dataset.tab)));
+let statLast=null;
+const statMethod=$('statMethod');
+const statHints={
+ welch:'Two columns: Group, Value. Use exactly two independent groups.',
+ pooled:'Two columns: Group, Value. Use exactly two independent groups; assumes equal population variances.',
+ onesample:'One numeric column: Value. Set the hypothesised population mean (μ₀) below.',
+ paired:'Two numeric columns: Before, After. Each row must represent the same subject or matched unit.',
+ anova:'Two columns: Group, Value. Use two or more independent groups.',
+ correlation:'Two numeric columns: X, Y. Tests linear association; correlation does not imply causation.',
+ spearman:'Two numeric columns: X, Y. Rank-based association; useful for monotonic relationships.',
+ regression:'Two numeric columns: X, Y. Estimates Y from X using ordinary least squares.',
+ bayes:'One row: successes,total trials,prior β (optional; defaults to 1). Set prior α below.',
+ pca:'Rows are samples; first column is sample ID and remaining columns are numeric variables. Missing values are not allowed.',
+ cluster:'Rows are samples; first column is sample ID and remaining columns are numeric variables. Uses Euclidean distance and single-linkage clustering.'
+};
+statMethod.addEventListener('change',()=>{ $('statHint').textContent=statHints[statMethod.value];$('statParamWrap').style.display=['onesample','bayes'].includes(statMethod.value)?'block':'none';$('statParamLabel').textContent=statMethod.value==='onesample'?'Hypothesised mean (μ₀)':'Beta prior α (prior β is the optional third value in the data row)';if(statMethod.value==='bayes'&&Number($('statParam').value)<=0)$('statParam').value=1;});
+statMethod.dispatchEvent(new Event('change'));
+function loadStatExample(){
+ const m=statMethod.value;
+ const examples={
+ welch:'Group,Value\nControl,12\nControl,14\nControl,13\nControl,15\nTreatment,18\nTreatment,20\nTreatment,17\nTreatment,19',
+ pooled:'Group,Value\nControl,12\nControl,14\nControl,13\nControl,15\nTreatment,18\nTreatment,20\nTreatment,17\nTreatment,19',
+ onesample:'Value\n11\n12\n10\n13\n12\n14\n11',
+ paired:'Before,After\n10,12\n12,13\n9,11\n14,16\n11,12',
+ anova:'Group,Value\nA,12\nA,14\nA,13\nB,18\nB,20\nB,17\nC,15\nC,16\nC,14',
+ correlation:'X,Y\n1,2.1\n2,3.9\n3,6.2\n4,7.8\n5,10.1\n6,11.7',
+ spearman:'X,Y\n1,2\n2,4\n3,3\n4,6\n5,5\n6,8',
+ regression:'X,Y\n1,2.1\n2,3.9\n3,6.2\n4,7.8\n5,10.1\n6,11.7',
+ bayes:'Successes,Total\n7,10',
+ pca:'Sample,Height,Weight,Length\nS1,10,20,5\nS2,12,23,6\nS3,9,18,4\nS4,20,35,9\nS5,18,32,8\nS6,22,38,10',
+ cluster:'Sample,Height,Weight,Length\nS1,10,20,5\nS2,12,23,6\nS3,9,18,4\nS4,20,35,9\nS5,18,32,8\nS6,22,38,10'
+ };
+ $('statData').value=examples[m];runStat();
+}
+function parseStat(){
+ const lines=$('statData').value.trim().split(/\r?\n/).filter(x=>x.trim());
+ if(lines.length<2)throw Error('Enter a header (optional) and at least two data rows.');
+ const rows=lines.map(x=>x.split(/[,\t;]/).map(v=>v.trim().replace(/^"|"$/g,'')));
+ let start=0;
+ if(rows[0].some(x=>x!==''&&!Number.isFinite(Number(x))))start=1;
+ return rows.slice(start).map((r,i)=>({r,i})).filter(x=>x.r.some(v=>v!==''));
+}
+function nums(col){return col.map(Number).filter(Number.isFinite)}
+function mean(a){return a.reduce((s,x)=>s+x,0)/a.length}
+function variance(a){let m=mean(a);return a.reduce((s,x)=>s+(x-m)**2,0)/(a.length-1)}
+function erf(x){let s=Math.sign(x),a=Math.abs(x),t=1/(1+0.3275911*a);return s*(1-((((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t)*Math.exp(-a*a))}
+function logGamma(z){const c=[676.5203681218851,-1259.1392167224028,771.3234287776531,-176.6150291621406,12.507343278686905,-0.13857109526572012,9.984369578019572e-6,1.5056327351493116e-7];if(z<.5)return Math.log(Math.PI)-Math.log(Math.sin(Math.PI*z))-logGamma(1-z);z-=1;let x=.99999999999980993;c.forEach((v,i)=>x+=v/(z+i+1));let t=z+c.length-.5;return .5*Math.log(2*Math.PI)+(z+.5)*Math.log(t)-t+Math.log(x)}
+function betacf(a,b,x){let qab=a+b,qap=a+1,qam=a-1,c=1,d=1-qab*x/qap;if(Math.abs(d)<1e-30)d=1e-30;d=1/d;let h=d;for(let m=1;m<=200;m++){let m2=2*m,aa=m*(b-m)*x/((qam+m2)*(a+m2));d=1+aa*d;if(Math.abs(d)<1e-30)d=1e-30;c=1+aa/c;if(Math.abs(c)<1e-30)c=1e-30;d=1/d;h*=d*c;aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2));d=1+aa*d;if(Math.abs(d)<1e-30)d=1e-30;c=1+aa/c;if(Math.abs(c)<1e-30)c=1e-30;d=1/d;let del=d*c;h*=del;if(Math.abs(del-1)<3e-12)break}return h}
+function ibeta(x,a,b){if(x<=0)return 0;if(x>=1)return 1;let bt=Math.exp(logGamma(a+b)-logGamma(a)-logGamma(b)+a*Math.log(x)+b*Math.log(1-x));return x<(a+1)/(a+b+2)?bt*betacf(a,b,x)/a:1-bt*betacf(b,a,1-x)/b}
+function tP(t,df){let x=df/(df+t*t);return ibeta(x,df/2,.5)}
+function fP(f,d1,d2){return ibeta(d2/(d2+d1*f),d2/2,d1/2)}
+function pearson(x,y){let mx=mean(x),my=mean(y),a=0,b=0,c=0;for(let i=0;i<x.length;i++){a+=(x[i]-mx)*(y[i]-my);b+=(x[i]-mx)**2;c+=(y[i]-my)**2}return a/Math.sqrt(b*c)}
+function ranks(a){let idx=a.map((v,i)=>[v,i]).sort((x,y)=>x[0]-y[0]),r=Array(a.length);for(let i=0;i<idx.length;){let j=i+1;while(j<idx.length&&idx[j][0]===idx[i][0])j++;let rank=(i+1+j)/2;for(let k=i;k<j;k++)r[idx[k][1]]=rank;i=j}return r}
+function quantile(a,q){let s=[...a].sort((x,y)=>x-y),p=(s.length-1)*q,i=Math.floor(p),f=p-i;return s[i+1]===undefined?s[i]:s[i]+f*(s[i+1]-s[i])}
+function statMetric(label,value){return `<div class="metric"><span>${label}</span><strong>${value}</strong></div>`}
+function statTable(rows){return `<div class="tablewrap"><table><tbody>${rows.map(r=>`<tr><th>${r[0]}</th><td>${r[1]}</td></tr>`).join('')}</tbody></table></div>`}
+function runStat(){
+ try{
+  let m=statMethod.value,rows=parseStat(),out=[],metrics=[],plotData=null,title='';
+  const col=(i)=>rows.map(x=>x.r[i]);
+  if(['welch','pooled','anova'].includes(m)){
+   let g=col(0),v=col(1).map(Number);if(v.some(x=>!Number.isFinite(x)))throw Error('The Value column must contain numeric observations.');
+   let groups=[...new Set(g)];if(groups.length<2)throw Error('At least two groups are required.');
+   let arr=groups.map(k=>v.filter((x,i)=>g[i]===k));if(arr.some(a=>a.length<2))throw Error('Each group needs at least two observations.');
+   if(m==='anova'){
+    let n=v.length,k=arr.length,gm=mean(v),ssb=arr.reduce((s,a)=>s+a.length*(mean(a)-gm)**2,0),ssw=arr.reduce((s,a)=>s+a.reduce((z,x)=>z+(x-mean(a))**2,0),0),df1=k-1,df2=n-k,F=(ssb/df1)/(ssw/df2),p=fP(F,df1,df2);
+    metrics=[statMetric('F statistic',F.toFixed(5)),statMetric('p-value',p.toExponential(4)),statMetric('Groups',k),statMetric('N',n)];
+    out=statTable([['Between-group SS',ssb.toFixed(5)],['Within-group SS',ssw.toFixed(5)],['df between / within',`${df1} / ${df2}`],['Grand mean',gm.toFixed(5)],['Conclusion at α = 0.05',p<.05?'Evidence of a difference among group means':'Insufficient evidence of a difference among group means']]);
+   }else{
+    if(arr.length!==2)throw Error('This t-test requires exactly two groups.');
+    let a=arr[0],b=arr[1],ma=mean(a),mb=mean(b),va=variance(a),vb=variance(b),t,df,se;
+    if(m==='pooled'){let sp=((a.length-1)*va+(b.length-1)*vb)/(a.length+b.length-2);se=Math.sqrt(sp*(1/a.length+1/b.length));df=a.length+b.length-2}
+    else{se=Math.sqrt(va/a.length+vb/b.length);df=(va/a.length+vb/b.length)**2/((va/a.length)**2/(a.length-1)+(vb/b.length)**2/(b.length-1))}
+    t=(ma-mb)/se;let p=tP(Math.abs(t),df);
+    metrics=[statMetric('t statistic',t.toFixed(5)),statMetric('p-value',p.toExponential(4)),statMetric('Mean difference',(ma-mb).toFixed(5)),statMetric('df',df.toFixed(3))];
+    out=statTable([['Group 1 mean ± SD',`${ma.toFixed(4)} ± ${Math.sqrt(va).toFixed(4)} (n=${a.length})`],['Group 2 mean ± SD',`${mb.toFixed(4)} ± ${Math.sqrt(vb).toFixed(4)} (n=${b.length})`],['Test',m==='pooled'?'Pooled independent t-test':'Welch independent t-test'],['Conclusion at α = 0.05',p<.05?'Evidence of a difference in means':'Insufficient evidence of a difference in means']]);
+   }
+   plotData={groups:groups.map((g,i)=>({name:g,values:arr[i]}))};title=m==='anova'?'One-way ANOVA':'Independent-samples t-test';
+  }else if(['onesample','paired'].includes(m)){
+   let a,b,d;
+   if(m==='onesample'){a=col(0).map(Number);if(a.some(x=>!Number.isFinite(x)))throw Error('Enter one numeric column.');d=a.map(x=>x-Number($('statParam').value));}
+   else{a=col(0).map(Number);b=col(1).map(Number);if(a.some(x=>!Number.isFinite(x))||b.some(x=>!Number.isFinite(x)))throw Error('Both paired columns must be numeric.');d=a.map((x,i)=>x-b[i]);}
+   if(d.length<2)throw Error('At least two observations are required.');let md=mean(d),sd=Math.sqrt(variance(d)),t=md/(sd/Math.sqrt(d.length)),df=d.length-1,p=tP(Math.abs(t),df);
+   metrics=[statMetric('t statistic',t.toFixed(5)),statMetric('p-value',p.toExponential(4)),statMetric('Mean difference',md.toFixed(5)),statMetric('df',df)];
+   out=statTable([['Mean of differences',md.toFixed(5)],['SD of differences',sd.toFixed(5)],['N',d.length],['Conclusion at α = 0.05',p<.05?'Evidence of a non-zero mean difference':'Insufficient evidence of a non-zero mean difference']]);plotData={values:d};title=m==='paired'?'Paired t-test':'One-sample t-test';
+  }else if(['correlation','spearman','regression'].includes(m)){
+   let x=col(0).map(Number),y=col(1).map(Number);if(x.length!==y.length||x.some(v=>!Number.isFinite(v))||y.some(v=>!Number.isFinite(v)))throw Error('Enter two complete numeric columns.');if(x.length<3)throw Error('At least three paired observations are required.');
+   let r=pearson(m==='spearman'?ranks(x):x,m==='spearman'?ranks(y):y),n=x.length,t=r*Math.sqrt((n-2)/(1-r*r)),p=tP(Math.abs(t),n-2);
+   let mx=mean(x),my=mean(y),slope= r*Math.sqrt(variance(y)/variance(x)),intercept=my-slope*mx,r2=r*r;
+   metrics=[statMetric(m==='regression'?'R²':'Correlation r',m==='regression'?r2.toFixed(5):r.toFixed(5)),statMetric('p-value',p.toExponential(4)),statMetric('N',n),statMetric('Slope',slope.toFixed(5))];
+   out=statTable([['Pearson r',pearson(x,y).toFixed(5)],['Regression equation',`Y = ${intercept.toFixed(4)} + ${slope.toFixed(4)}X`],['R²',r2.toFixed(5)],['Interpretation',Math.abs(r)<.3?'Weak association':Math.abs(r)<.7?'Moderate association':'Strong association'],['Caution','Association does not establish causation.']]);plotData={x,y,slope,intercept};title=m==='spearman'?'Spearman rank correlation':m==='regression'?'Linear regression':'Pearson correlation';
+  }else if(m==='bayes'){
+   let success=Number(rows[0].r[0]),total=Number(rows[0].r[1]),alpha=Number($('statParam').value)||1,beta=Number(rows[0].r[2]||1);
+   if(!Number.isFinite(success)||!Number.isFinite(total)||success<0||total<=0||success>total||!Number.isFinite(beta)||beta<=0||alpha<=0)throw Error('Enter successes,total,prior β in one row; prior α is set above.');let aa=alpha+success,bb=beta+total-success,post=aa/(aa+bb),lo=0,hi=1;
+   function cdf(z){return ibeta(z,aa,bb)}for(let q of [.025,.975]){let l=0,h=1;for(let i=0;i<70;i++){let mid=(l+h)/2;if(cdf(mid)<q)l=mid;else h=mid}if(q<.05)lo=(l+h)/2;else hi=(l+h)/2}
+   metrics=[statMetric('Posterior mean',post.toFixed(5)),statMetric('95% credible interval',`${lo.toFixed(4)}–${hi.toFixed(4)}`),statMetric('Posterior α / β',`${aa} / ${bb}`)];
+   out=statTable([['Observed proportion',(success/total).toFixed(5)],['Prior',`Beta(${alpha}, ${beta})`],['Posterior',`Beta(${aa}, ${bb})`],['Interpretation','Posterior distribution combines the stated prior with the observed binomial data.']]);title='Bayesian Beta–Binomial estimation';plotData={bayes:{aa,bb}};
+  }else if(m==='pca'||m==='cluster'){
+   let labels=col(0),mat=rows.map(x=>x.r.slice(1).map(Number));if(mat.some(r=>r.length<2||r.some(v=>!Number.isFinite(v))))throw Error('Provide at least two numeric variables per sample with no missing values.');let n=mat.length,p=mat[0].length;if(n<3)throw Error('At least three samples are required.');if(mat.some(r=>r.length!==p))throw Error('All rows must have the same number of variables.');
+   let means=Array.from({length:p},(_,j)=>mean(mat.map(r=>r[j]))),sds=Array.from({length:p},(_,j)=>Math.sqrt(variance(mat.map(r=>r[j]))));if(sds.some(s=>s===0))throw Error('Remove constant variables before multivariate analysis.');
+   let z=mat.map(r=>r.map((v,j)=>(v-means[j])/sds[j])),cov=Array.from({length:p},(_,i)=>Array.from({length:p},(_,j)=>z.reduce((s,r)=>s+r[i]*r[j],0)/(n-1)));
+   if(m==='pca'){
+    let A=cov.map(r=>[...r]),V=Array.from({length:p},(_,i)=>Array.from({length:p},(_,j)=>i===j?1:0));
+    for(let iter=0;iter<100*p*p;iter++){let q=0,r=1,max=0;for(let i=0;i<p;i++)for(let j=i+1;j<p;j++)if(Math.abs(A[i][j])>max){max=Math.abs(A[i][j]);q=i;r=j}if(max<1e-10)break;let phi=.5*Math.atan2(2*A[q][r],A[r][r]-A[q][q]),c=Math.cos(phi),s=Math.sin(phi);for(let k=0;k<p;k++){let aq=A[k][q],ar=A[k][r];A[k][q]=c*aq-s*ar;A[k][r]=s*aq+c*ar}for(let k=0;k<p;k++){let aq=A[q][k],ar=A[r][k];A[q][k]=c*aq-s*ar;A[r][k]=s*aq+c*ar}for(let k=0;k<p;k++){let vq=V[k][q],vr=V[k][r];V[k][q]=c*vq-s*vr;V[k][r]=s*vq+c*vr}}
+    let eig=Array.from({length:p},(_,i)=>({value:A[i][i],vec:V.map(r=>r[i])})).sort((a,b)=>b.value-a.value),total=eig.reduce((s,e)=>s+e.value,0),pcs=z.map(row=>eig.slice(0,2).map(e=>row.reduce((s,v,j)=>s+v*e.vec[j],0)));
+    metrics=eig.slice(0,Math.min(4,p)).map((e,i)=>statMetric(`PC${i+1} variance`,`${(100*e.value/total).toFixed(2)}%`));out=statTable(eig.map((e,i)=>[`PC${i+1} eigenvalue`,e.value.toFixed(5)]));plotData={x:pcs.map(r=>r[0]),y:pcs.map(r=>r[1]||0),labels};title='Principal component analysis (standardised variables)';
+   }else{
+    let clusters=mat.map((r,i)=>({members:[i],name:labels[i]})),merges=[];function dist(a,b){let best=Infinity;for(let i of a.members)for(let j of b.members){let d=Math.sqrt(mat[i].reduce((s,v,k)=>s+(v-mat[j][k])**2,0));best=Math.min(best,d)}return best}
+    while(clusters.length>1){let bi=0,bj=1,bd=dist(clusters[0],clusters[1]);for(let i=0;i<clusters.length;i++)for(let j=i+1;j<clusters.length;j++){let d=dist(clusters[i],clusters[j]);if(d<bd){bd=d;bi=i;bj=j}}let a=clusters[bi],b=clusters[bj];merges.push([a.name,b.name,bd.toFixed(4)]);let c={members:[...a.members,...b.members],name:`(${a.name}+${b.name})`};clusters=clusters.filter((_,i)=>i!==bi&&i!==bj);clusters.push(c)}
+    metrics=[statMetric('Samples',n),statMetric('Variables',p),statMetric('Linkage','Single'),statMetric('Distance','Euclidean')];out=statTable(merges.map((r,i)=>[`Merge ${i+1}`,`${r[0]} + ${r[1]} (distance ${r[2]})`]));title='Hierarchical cluster analysis';plotData={labels,mat};
+   }
+  }
+  $('statTitle').textContent=title;$('statSub').textContent=`${rows.length} observations · calculated in browser`;$('statMetrics').innerHTML=metrics.join('');$('statOutput').innerHTML=out;statLast={title,metrics,out};drawStat(plotData,m);
+ }catch(e){$('statOutput').innerHTML=`<div class="notice">${e.message}</div>`;$('statMetrics').innerHTML='';}
+}
+function drawStat(d,m){
+ let c=$('statChart'),ctx=c.getContext('2d'),w=c.width=c.clientWidth*devicePixelRatio,h=c.height=c.clientHeight*devicePixelRatio;ctx.scale(devicePixelRatio,devicePixelRatio);let W=c.clientWidth,H=c.clientHeight,pad={l:45,r:15,t:20,b:35},pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;ctx.clearRect(0,0,W,H);ctx.font='11px system-ui';ctx.fillStyle='#75849a';ctx.strokeStyle='#e7edf4';for(let j=0;j<=4;j++){let yy=pad.t+ph*j/4;ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(W-pad.r,yy);ctx.stroke()}
+ let choice=$('statPlot').value;
+ if(d&&d.x&&d.y){let xmin=Math.min(...d.x),xmax=Math.max(...d.x),ymin=Math.min(...d.y),ymax=Math.max(...d.y);if(xmax===xmin)xmax++;if(ymax===ymin)ymax++;let X=x=>pad.l+(x-xmin)/(xmax-xmin)*pw,Y=y=>pad.t+ph-(y-ymin)/(ymax-ymin)*ph;
+  if(choice==='line'){ctx.strokeStyle='#159b91';ctx.lineWidth=2;ctx.beginPath();d.x.forEach((x,i)=>{i?ctx.lineTo(X(x),Y(d.y[i])):ctx.moveTo(X(x),Y(d.y[i]))});ctx.stroke()}
+  if(choice==='regression'||choice==='auto'&&['regression','correlation','spearman'].includes(m)){ctx.strokeStyle='#e19a39';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(X(xmin),Y(d.intercept!==undefined?d.intercept+d.slope*xmin:ymin));ctx.lineTo(X(xmax),Y(d.intercept!==undefined?d.intercept+d.slope*xmax:ymax));ctx.stroke()}
+  d.x.forEach((x,i)=>{ctx.fillStyle='#2876d2';ctx.beginPath();ctx.arc(X(x),Y(d.y[i]),4,0,Math.PI*2);ctx.fill()});ctx.fillStyle='#52657b';ctx.fillText('X / component 1',W/2-30,H-5);ctx.fillText('Y / component 2',3,12);return;
+ }
+ if(d&&d.groups){let vals=d.groups.flatMap(g=>g.values),min=Math.min(...vals),max=Math.max(...vals);if(max===min)max++;let Y=v=>pad.t+ph-(v-min)/(max-min)*ph,bw=pw/d.groups.length*.48;d.groups.forEach((g,i)=>{let x=pad.l+(i+.5)*pw/d.groups.length;ctx.textAlign='center';ctx.fillStyle='#566a80';ctx.fillText(g.name,x,H-8);if(choice==='box'){let q1=quantile(g.values,.25),med=quantile(g.values,.5),q3=quantile(g.values,.75),lo=Math.min(...g.values),hi=Math.max(...g.values);ctx.strokeStyle='#2876d2';ctx.fillStyle='#eaf2ff';ctx.fillRect(x-bw/2,Y(q3),bw,Y(q1)-Y(q3));ctx.strokeRect(x-bw/2,Y(q3),bw,Y(q1)-Y(q3));ctx.beginPath();ctx.moveTo(x-bw/2,Y(med));ctx.lineTo(x+bw/2,Y(med));ctx.moveTo(x,Y(q3));ctx.lineTo(x,Y(hi));ctx.moveTo(x,Y(q1));ctx.lineTo(x,Y(lo));ctx.stroke();}else{let v=mean(g.values),y=Y(v);ctx.fillStyle='#299b91';ctx.fillRect(x-bw/2,y,bw,pad.t+ph-y);}});return}
+ if(d&&d.values){let a=d.values,lo=Math.min(...a),hi=Math.max(...a),bins=8,counts=Array(bins).fill(0);a.forEach(v=>counts[Math.min(bins-1,Math.floor((v-lo)/(hi-lo||1)*bins))]++);let max=Math.max(...counts),bw=pw/bins;counts.forEach((v,i)=>{let bh=v/max*ph;ctx.fillStyle='#299b91';ctx.fillRect(pad.l+i*bw+1,pad.t+ph-bh,bw-2,bh)});return}
+ if(d&&d.bayes){let {aa,bb}=d.bayes,vals=[];for(let i=1;i<100;i++){let x=i/100;vals.push(Math.exp((aa-1)*Math.log(x)+(bb-1)*Math.log(1-x)-logGamma(aa)-logGamma(bb)+logGamma(aa+bb)))}let max=Math.max(...vals);ctx.strokeStyle='#2876d2';ctx.lineWidth=2;ctx.beginPath();vals.forEach((v,i)=>{let x=pad.l+(i/(vals.length-1))*pw,y=pad.t+ph-v/max*ph;i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke();return}
+ if(d&&d.mat){ctx.fillStyle='#2876d2';d.mat.forEach((r,i)=>{let x=pad.l+(i+.5)*pw/d.mat.length,y=pad.t+ph-(i/(d.mat.length||1))*ph;ctx.beginPath();ctx.arc(x,y,4,0,7);ctx.fill()})}
+}
+$('statPlot').addEventListener('change',()=>{if(statLast)runStat()});
+function downloadStat(){if(!statLast){alert('Run an analysis first.');return}download('freeresearch_statistical_analysis.txt',statLast.title+'\n\n'+$('statOutput').innerText+'\n\n'+$('statMetrics').innerText)}
+runStat();
+
 function downloadBio(){if(!bioResult)return;let r=bioResult;download('freeresearch_biodiversity_results.csv','Metric,Value\nObserved richness,'+r.S+'\nIndividuals,'+r.N+'\nShannon H,'+r.H+'\nSimpson D,'+r.D+'\nSimpson 1-D,'+r.oneMinusD+'\nInverse Simpson,'+r.reciprocal+'\nChao1,'+r.chao+'\nPielou J,'+r.J+'\nSingletons,'+r.f1+'\nDoubletons,'+r.f2+'\n\nSpecies,Abundance\n'+r.data.map(x=>x.name+','+x.count).join('\n'))}
 analyseBio();
 </script>
