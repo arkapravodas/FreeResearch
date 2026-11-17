@@ -85,34 +85,9 @@ main{min-width:0}.topbar{height:72px;background:#fff;border-bottom:1px solid var
    </div>
   </section>
   <section id="bio" class="view">
-   <div class="eyebrow">Laboratory 02</div><div class="heading"><div><h1>Biostatistics &amp; Biodiversity</h1><p>Explore ecological diversity, hypothesis testing, correlation, regression, Bayesian inference and multivariate statistics.</p></div><button class="btn secondary" onclick="showView('dashboard')">← Dashboard</button></div>
-   <div class="workspace">
-    <div class="card control"><h3>Community data</h3><p class="sub">One species and its observed count per row.</p>
-     <div class="field"><label>Dataset name</label><input id="dataset" value="Community sample"></div>
-     <div class="field"><label>Species abundance data</label><textarea id="abund" spellcheck="false">Species,Abundance
-Species A,24
-Species B,18
-Species C,12
-Species D,8
-Species E,5
-Species F,3
-Species G,2
-Species H,1
-Species I,1</textarea><div class="hint">Accepted: CSV with a header and two columns (species, abundance), or tab-separated values.</div></div>
-     <div class="row2"><button class="btn secondary" onclick="loadExample()">Load example</button><button class="btn" onclick="analyseBio()">Analyse data</button></div>
-     <div class="field"><label>Or upload a CSV file</label><input type="file" id="csvfile" accept=".csv,.txt"></div>
-     <div class="notice">Chao1 uses the number of singleton and doubleton species. It estimates unseen richness; it is not a direct count of species.</div>
-    </div>
-    <div class="card results"><div class="resulttop"><div><h3>Community analysis</h3><p class="sub" style="margin:2px 0 0" id="biosub">Observed diversity and estimated richness</p></div><button class="btn ghost" onclick="downloadBio()">↓ Export results</button></div>
-     <div class="metrics" id="biometrics"></div><div class="chartwrap"><canvas id="biochart"></canvas></div>
-     <div class="tabs"><button class="tab active" data-tab="indices">Indices</button><button class="tab" data-tab="abundance">Abundance table</button><button class="tab" data-tab="notes">Interpretation</button></div>
-     <div id="biotab"></div>
-     <div class="notice">Indices are calculated from the abundance counts supplied. Sampling design, taxonomic resolution and sampling effort affect ecological interpretation. This MVP does not yet calculate sample-based Chao2, ACE, rarefaction or confidence intervals.</div>
-    </div>
-   </div>
-  </section>
-
-   <div class="card" style="margin-top:18px">
+    <div class="eyebrow">Laboratory 02</div>
+    <div class="heading"><div><h1>Biostatistics</h1><p>Statistical analysis of biological data, including hypothesis testing, correlation, regression, Bayesian estimation and multivariate statistics.</p></div><button class="btn secondary" onclick="showView('dashboard')">← Dashboard</button></div>
+    <div class="card" style="margin-top:18px">
     <div class="resulttop"><div><h2 class="sectiontitle">Statistical Analysis Studio</h2><p class="sub">General-purpose tests, multivariate analysis, Bayesian estimation and publication-style plots. All calculations run locally in your browser.</p></div><span class="tag">Expanded toolkit</span></div>
     <div class="workspace">
      <div class="control">
@@ -153,7 +128,37 @@ Treatment,19</textarea><div class="hint" id="statHint">For t-tests and ANOVA: tw
      </div>
     </div>
    </div>
-   <div class="card" style="margin-top:18px">
+   </section>
+
+   <section id="biodiv" class="view">
+    <div class="eyebrow">Laboratory 03</div>
+    <div class="heading"><div><h1>Biodiversity</h1><p>Analyse species abundance, community composition, alpha and beta diversity, richness and ecological community structure.</p></div><button class="btn secondary" onclick="showView('dashboard')">← Dashboard</button></div>
+    <div class="workspace">
+    <div class="card control"><h3>Community data</h3><p class="sub">One species and its observed count per row.</p>
+     <div class="field"><label>Dataset name</label><input id="dataset" value="Community sample"></div>
+     <div class="field"><label>Species abundance data</label><textarea id="abund" spellcheck="false">Species,Abundance
+Species A,24
+Species B,18
+Species C,12
+Species D,8
+Species E,5
+Species F,3
+Species G,2
+Species H,1
+Species I,1</textarea><div class="hint">Accepted: CSV with a header and two columns (species, abundance), or tab-separated values.</div></div>
+     <div class="row2"><button class="btn secondary" onclick="loadExample()">Load example</button><button class="btn" onclick="analyseBio()">Analyse data</button></div>
+     <div class="field"><label>Or upload a CSV file</label><input type="file" id="csvfile" accept=".csv,.txt"></div>
+     <div class="notice">Chao1 uses the number of singleton and doubleton species. It estimates unseen richness; it is not a direct count of species.</div>
+    </div>
+    <div class="card results"><div class="resulttop"><div><h3>Community analysis</h3><p class="sub" style="margin:2px 0 0" id="biosub">Observed diversity and estimated richness</p></div><button class="btn ghost" onclick="downloadBio()">↓ Export results</button></div>
+     <div class="metrics" id="biometrics"></div><div class="chartwrap"><canvas id="biochart"></canvas></div>
+     <div class="tabs"><button class="tab active" data-tab="indices">Indices</button><button class="tab" data-tab="abundance">Abundance table</button><button class="tab" data-tab="notes">Interpretation</button></div>
+     <div id="biotab"></div>
+     <div class="notice">Indices are calculated from the abundance counts supplied. Sampling design, taxonomic resolution and sampling effort affect ecological interpretation. This MVP does not yet calculate sample-based Chao2, ACE, rarefaction or confidence intervals.</div>
+    </div>
+   </div>
+  
+    <div class="card" style="margin-top:18px">
     <h3 class="sectiontitle">Ecological community analysis — extended roadmap</h3>
     <p class="sub">Additional methods represented in your uploaded biodiversity workbook are being incorporated as dedicated modules.</p>
     <div class="grid labgrid">
@@ -163,7 +168,8 @@ Treatment,19</textarea><div class="hint" id="statHint">For t-tests and ANOVA: tw
     </div>
     <div class="notice">These extended ecological methods are listed as planned until their individual calculations and validation tests are implemented. The existing alpha-diversity calculator remains available above.</div>
    </div>
-  <section id="coming" class="view"><div class="eyebrow">Development roadmap</div><div class="heading"><div><h1>More laboratories are planned</h1><p>We will add these modules incrementally, prioritising free, browser-compatible and scientifically transparent implementations.</p></div><button class="btn secondary" onclick="showView('dashboard')">← Dashboard</button></div><div class="card"><h3>Planned modules</h3><p class="sub">The dashboard currently provides working mathematical modelling and biodiversity analysis tools. Other modules are roadmap placeholders, not active calculation engines yet.</p><ul><li>QM/MM learning utilities and molecular structure visualisation</li><li>Docking result visualisation and MD trajectory analysis</li><li>Primer design, reverse complement and ePCR utilities</li><li>Virtual agarose/PAGE gel and Southern/Western blot studio</li><li>Ant colony optimisation and genetic algorithm visualisation</li><li>Bayesian inference, sampling, rarefaction and multivariate statistics</li><li>EasyQGIS-style spatial analysis</li></ul></div></section>
+   </section>
+   <section id="coming" class="view"><div class="eyebrow">Development roadmap</div><div class="heading"><div><h1>More laboratories are planned</h1><p>We will add these modules incrementally, prioritising free, browser-compatible and scientifically transparent implementations.</p></div><button class="btn secondary" onclick="showView('dashboard')">← Dashboard</button></div><div class="card"><h3>Planned modules</h3><p class="sub">The dashboard currently provides working mathematical modelling, biostatistics and biodiversity analysis tools. Other modules are roadmap placeholders, not active calculation engines yet.</p><ul><li>QM/MM learning utilities and molecular structure visualisation</li><li>Docking result visualisation and MD trajectory analysis</li><li>Primer design, reverse complement and ePCR utilities</li><li>Virtual agarose/PAGE gel and Southern/Western blot studio</li><li>Ant colony optimisation and genetic algorithm visualisation</li><li>Bayesian inference, sampling, rarefaction and multivariate statistics</li><li>EasyQGIS-style spatial analysis</li></ul></div></section>
   <div class="footer">FreeResearch · An initiative by Arkapravo Das (M.Sc. Zoology, University of Calcutta) · Open scientific workspace · Browser-based</div>
  </div>
 </main>
@@ -171,7 +177,7 @@ Treatment,19</textarea><div class="hint" id="statHint">For t-tests and ANOVA: tw
 <script>
 let mathRows=[],bioResult=null,mathChart=null,bioChart=null;
 const $=id=>document.getElementById(id);
-function showView(v){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));$(v).classList.add('active');document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===v));$('crumb').textContent=({dashboard:'Dashboard',math:'Mathematical modelling',bio:'Biostatistics Lab',biodiv:'Biodiversity Lab',coming:'Development roadmap'})[v];if(v==='math')renderParams();if(v==='bio'&&!bioResult)analyseBio();if(v==='biodiv'&&!bioResult)analyseBio()}
+function showView(v){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));$(v).classList.add('active');document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===v));$('crumb').textContent=({dashboard:'Dashboard',math:'Mathematical modelling',bio:'Biostatistics Lab',biodiv:'Biodiversity Lab',coming:'Development roadmap'})[v];if(v==='math')renderParams();if(v==='biodiv'&&!bioResult)analyseBio()}
 document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
 const specs={
  logistic:[['r','Intrinsic growth rate (r)',0.2],['K','Carrying capacity (K)',1000],['N0','Initial population (N₀)',50]],
