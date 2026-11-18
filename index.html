@@ -158,7 +158,56 @@ Species I,1</textarea><div class="hint">Accepted: CSV with a header and two colu
     </div>
    </div>
   
-    <div class="card" style="margin-top:18px">
+    <div class="card" style="margin-top:18px" id="taxonomicCompare">
+    <div class="resulttop"><div><h2 class="sectiontitle">Two-community taxonomic similarity &amp; dissimilarity</h2><p class="sub">Compare taxon composition and abundance between two communities. Each index is reported independently.</p></div><span class="tag">Beta diversity</span></div>
+    <div class="workspace">
+     <div class="card control" style="box-shadow:none;background:#f9fbfe">
+      <h3>Community comparison data</h3><p class="sub">Enter one taxon per row with its abundance in each community. Use zero when absent.</p>
+      <div class="field"><label>Taxon abundance matrix (CSV / tab-separated)</label><textarea id="taxCompareData" spellcheck="false">Taxon,Community A,Community B
+Species A,12,8
+Species B,7,0
+Species C,3,5
+Species D,0,9
+Species E,2,1
+Species F,0,4</textarea><div class="hint">Required columns: Taxon, Community A, Community B. Include shared and unique taxa; counts must be non-negative integers.</div></div>
+      <div class="row2"><button class="btn secondary" onclick="loadTaxCompareExample()">Load example</button><button class="btn" onclick="runTaxCompare()">Compare communities</button></div>
+      <div class="field"><label>Table display</label><select id="taxTableMode" onchange="renderTaxCompareTable()"><option value="counts">Raw abundance counts</option><option value="relative">Relative abundance (%)</option><option value="presence">Presence / absence (0/1)</option></select></div>
+      <div class="field"><label>Sort table by</label><select id="taxSort" onchange="renderTaxCompareTable()"><option value="input">Original taxon order</option><option value="a">Community A abundance</option><option value="b">Community B abundance</option><option value="diff">Absolute abundance difference</option><option value="name">Taxon name</option></select></div>
+      <div class="field"><label>Decimal places</label><select id="taxPrecision" onchange="renderTaxCompareTable()"><option>2</option><option selected>4</option><option>6</option></select></div>
+     </div>
+     <div class="card results" style="box-shadow:none">
+      <div class="resulttop"><div><h3>Independent index results</h3><p class="sub" id="taxCompareSummary">Run the comparison to calculate taxonomic indices.</p></div><button class="btn ghost" onclick="downloadTaxCompare()">↓ Export indices</button></div>
+      <div class="metrics" id="taxCompareMetrics"></div>
+      <div id="taxCompareResults"><div class="notice">Enter both community abundance columns and select “Compare communities”. Similarity and dissimilarity values are calculated separately.</div></div>
+     </div>
+    </div>
+    <div class="card" style="margin-top:14px;box-shadow:none;background:#fbfcff">
+     <h3>Customisable comparison table</h3><p class="sub">Choose count, relative-abundance or presence/absence values; sort rows and adjust numeric precision.</p>
+     <div id="taxCompareTable" class="tablewrap"><p class="hint" style="padding:10px">The comparison table will appear after analysis.</p></div>
+     <div class="plot-toolbar"><button onclick="downloadTaxTable()">Download table CSV</button></div>
+    </div>
+    <div class="card" style="margin-top:14px;box-shadow:none;background:#fbfcff">
+     <h3>Customisable graphs</h3><p class="sub">Build abundance or index comparison plots. The combo chart displays Community A as bars and Community B as a line.</p>
+     <div class="row2">
+      <div class="field"><label>Graph data</label><select id="taxGraphData" onchange="renderTaxCompareGraph()"><option value="abundance">Taxon abundance</option><option value="relative">Relative abundance (%)</option><option value="indices">Similarity / dissimilarity indices</option></select></div>
+      <div class="field"><label>Graph type</label><select id="taxGraphType" onchange="renderTaxCompareGraph()"><option value="bar">Grouped bar chart</option><option value="line">Line graph</option><option value="barline">Bar + line combo chart</option><option value="stack">Stacked bar chart</option></select></div>
+     </div>
+     <div class="row2">
+      <div class="field"><label>Chart title</label><input id="taxGraphTitle" value="Community comparison" oninput="renderTaxCompareGraph()"></div>
+      <div class="field"><label>X-axis title</label><input id="taxGraphX" value="Taxon / index" oninput="renderTaxCompareGraph()"></div>
+     </div>
+     <div class="row2">
+      <div class="field"><label>Y-axis title</label><input id="taxGraphY" value="Abundance / index value" oninput="renderTaxCompareGraph()"></div>
+      <div class="field"><label>Index category (when graph data = indices)</label><select id="taxIndexKind" onchange="renderTaxCompareGraph()"><option value="similarity">Similarity indices</option><option value="dissimilarity">Dissimilarity indices</option><option value="all">All indices</option></select></div>
+     </div>
+     <div class="plot-toolbar"><button onclick="renderTaxCompareGraph()">Apply graph settings</button><button onclick="downloadTaxGraph('png')">Download PNG</button><button onclick="downloadTaxGraph('svg')">Download SVG</button><button onclick="downloadTaxGraph('csv')">Download graph data</button></div>
+     <div id="taxComparePlot" class="plot-area"></div>
+     <p class="hint">All graph settings can be changed independently. For an index plot, values are on a 0–1 scale. Similarity is higher when communities are more alike; dissimilarity is higher when they differ more.</p>
+    </div>
+    <div class="notice">Interpretation: presence/absence indices treat all recorded taxa equally; abundance-based indices also use counts. Compare communities with consistent sampling effort, taxonomic resolution and identification. Similarity and dissimilarity indices describe compositional resemblance, not ecological cause.</div>
+   </div>
+
+   <div class="card" style="margin-top:18px">
     <h3 class="sectiontitle">Ecological community analysis — extended roadmap</h3>
     <p class="sub">Additional methods represented in your uploaded biodiversity workbook are being incorporated as dedicated modules.</p>
     <div class="grid labgrid">
@@ -388,6 +437,58 @@ const runStatBase=runStat;
 runStat=function(){let m=statMethod.value;if(['mannwhitney','wilcoxon','kruskal','friedman','skew'].includes(m)){try{runNonparametric(m)}catch(e){$('statMetrics').innerHTML='';$('statOutput').innerHTML='<div class="notice">'+e.message+'</div>'}return}runStatBase()};
 
 analyseBio();
+
+// Two-community taxonomic comparison module (added without changing existing laboratory engines).
+let taxCompareState=null;
+function loadTaxCompareExample(){ $('taxCompareData').value='Taxon,Community A,Community B\nSpecies A,12,8\nSpecies B,7,0\nSpecies C,3,5\nSpecies D,0,9\nSpecies E,2,1\nSpecies F,0,4'; runTaxCompare(); }
+function parseTaxCompare(){
+ const lines=$('taxCompareData').value.trim().split(/\r?\n/).filter(x=>x.trim());
+ if(lines.length<2)throw Error('Enter a header and at least one taxon row.');
+ const split=line=>line.split(/[\t,;]/).map(x=>x.trim().replace(/^"|"$/g,''));
+ const head=split(lines[0]).map(x=>x.toLowerCase());
+ let ix=head.findIndex(x=>['taxon','taxa','species','name'].includes(x));
+ let ia=head.findIndex(x=>['community a','a','site a','sample a'].includes(x));
+ let ib=head.findIndex(x=>['community b','b','site b','sample b'].includes(x));
+ if(ix<0||ia<0||ib<0){if(head.length>=3){ix=0;ia=1;ib=2}else throw Error('Header must identify Taxon, Community A and Community B columns.');}
+ const rows=[];const seen=new Set();
+ for(let i=1;i<lines.length;i++){let c=split(lines[i]);if(c.length<=Math.max(ix,ia,ib))throw Error(`Incomplete row ${i+1}.`);let name=c[ix];let a=Number(c[ia]),b=Number(c[ib]);if(!name||!Number.isFinite(a)||!Number.isFinite(b)||a<0||b<0||!Number.isInteger(a)||!Number.isInteger(b))throw Error(`Invalid values at row ${i+1}; use taxon names and non-negative integer counts.`);if(seen.has(name))throw Error(`Duplicate taxon: ${name}`);seen.add(name);rows.push({name,a,b});}
+ if(!rows.length)throw Error('No taxon records found.');return rows;
+}
+function runTaxCompare(){try{
+ const rows=parseTaxCompare(),A=rows.filter(r=>r.a>0),B=rows.filter(r=>r.b>0),shared=rows.filter(r=>r.a>0&&r.b>0).length,sa=A.length,sb=B.length,union=rows.filter(r=>r.a>0||r.b>0).length;
+ const safe=(n,d)=>d? n/d:0;
+ const j=safe(shared,union),sor=safe(2*shared,sa+sb),simpson=safe(shared,Math.min(sa,sb)),ochiai=safe(shared,Math.sqrt(sa*sb)),kul=.5*(safe(shared,sa)+safe(shared,sb));
+ const sumA=rows.reduce((s,r)=>s+r.a,0),sumB=rows.reduce((s,r)=>s+r.b,0);
+ const minSum=rows.reduce((s,r)=>s+Math.min(r.a,r.b),0),maxSum=rows.reduce((s,r)=>s+Math.max(r.a,r.b),0),absDiff=rows.reduce((s,r)=>s+Math.abs(r.a-r.b),0);
+ const bray=safe(absDiff,sumA+sumB),ruz=safe(minSum,maxSum),mhDen=(sumA?rows.reduce((s,r)=>s+r.a*r.a,0)/(sumA*sumA):0)+(sumB?rows.reduce((s,r)=>s+r.b*r.b,0)/(sumB*sumB):0),mh=safe(2*rows.reduce((s,r)=>s+r.a*r.b,0),mhDen*sumA*sumB);
+ const idx=[
+  {name:'Jaccard similarity',value:j,kind:'similarity',formula:'a / (a + b + c)',desc:'Shared taxa divided by taxa occurring in either community.'},
+  {name:'Jaccard dissimilarity',value:1-j,kind:'dissimilarity',formula:'1 − Jaccard',desc:'Proportion of taxa not shared, relative to the union.'},
+  {name:'Sørensen–Dice similarity',value:sor,kind:'similarity',formula:'2a / (2a + b + c)',desc:'Gives shared taxa double weight relative to the total richness.'},
+  {name:'Sørensen dissimilarity',value:1-sor,kind:'dissimilarity',formula:'1 − Sørensen',desc:'Complement of Sørensen similarity.'},
+  {name:'Simpson (overlap) similarity',value:simpson,kind:'similarity',formula:'a / min(SA, SB)',desc:'Measures overlap relative to the smaller community; less sensitive to richness differences.'},
+  {name:'Simpson dissimilarity',value:1-simpson,kind:'dissimilarity',formula:'1 − Simpson overlap',desc:'Complement of Simpson overlap similarity.'},
+  {name:'Ochiai similarity',value:ochiai,kind:'similarity',formula:'a / √(SA × SB)',desc:'Cosine-like presence/absence similarity.'},
+  {name:'Kulczynski similarity',value:kul,kind:'similarity',formula:'½(a/SA + a/SB)',desc:'Mean of the shared proportion in each community.'},
+  {name:'Bray–Curtis dissimilarity',value:bray,kind:'dissimilarity',formula:'Σ|Ai − Bi| / Σ(Ai + Bi)',desc:'Abundance-based dissimilarity; ranges from 0 (identical) to 1 (no shared abundance).'},
+  {name:'Bray–Curtis similarity',value:1-bray,kind:'similarity',formula:'1 − Bray–Curtis',desc:'Complement of Bray–Curtis dissimilarity.'},
+  {name:'Ružička (quantitative Jaccard) similarity',value:ruz,kind:'similarity',formula:'Σmin(Ai, Bi) / Σmax(Ai, Bi)',desc:'Abundance-weighted Jaccard similarity.'},
+  {name:'Ružička dissimilarity',value:1-ruz,kind:'dissimilarity',formula:'1 − Ružička',desc:'Complement of quantitative Jaccard similarity.'},
+  {name:'Morisita–Horn similarity',value:mh,kind:'similarity',formula:'2Σ(AiBi) / [(λA + λB) NA NB]',desc:'Abundance-weighted overlap; strongly influenced by common taxa.'}
+ ];
+ taxCompareState={rows,idx,shared,sa,sb,union,sumA,sumB};
+ $('taxCompareSummary').textContent=`${sa} taxa in Community A · ${sb} taxa in Community B · ${shared} shared taxa · ${union} taxa in union`;
+ $('taxCompareMetrics').innerHTML=[['Shared taxa',shared],['Community A richness',sa],['Community B richness',sb],['Union richness',union],['Individuals A / B',`${sumA} / ${sumB}`]].map(([l,v])=>`<div class="metric"><span>${l}</span><strong>${v}</strong></div>`).join('');
+ $('taxCompareResults').innerHTML=`<div class="tablewrap"><table><thead><tr><th>Index (individual result)</th><th>Value</th><th>Type</th><th>Formula</th><th>Interpretation</th></tr></thead><tbody>${idx.map(x=>`<tr><td><strong>${x.name}</strong></td><td>${x.value.toFixed(6)}</td><td>${x.kind}</td><td>${x.formula}</td><td>${x.desc}</td></tr>`).join('')}</tbody></table></div>`;
+ renderTaxCompareTable();renderTaxCompareGraph();
+ }catch(e){$('taxCompareResults').innerHTML=`<div class="notice">${e.message}</div>`;$('taxCompareSummary').textContent='Comparison not calculated';}}
+function renderTaxCompareTable(){if(!taxCompareState)return;let {rows,sumA,sumB}=taxCompareState,mode=$('taxTableMode').value,sort=$('taxSort').value,dp=Number($('taxPrecision').value);let data=rows.map(r=>({...r,va:mode==='relative'?(sumA?100*r.a/sumA:0):mode==='presence'?(r.a>0?1:0):r.a,vb:mode==='relative'?(sumB?100*r.b/sumB:0):mode==='presence'?(r.b>0?1:0):r.b}));if(sort==='a')data.sort((x,y)=>y.a-x.a);if(sort==='b')data.sort((x,y)=>y.b-x.b);if(sort==='diff')data.sort((x,y)=>Math.abs(y.a-y.b)-Math.abs(x.a-x.b));if(sort==='name')data.sort((x,y)=>x.name.localeCompare(y.name));let label=mode==='relative'?'Relative abundance (%)':mode==='presence'?'Presence (0/1)':'Abundance';$('taxCompareTable').innerHTML=`<table><thead><tr><th>Taxon</th><th>Community A · ${label}</th><th>Community B · ${label}</th><th>Shared?</th></tr></thead><tbody>${data.map(r=>`<tr><td>${r.name.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</td><td>${r.va.toFixed(dp)}</td><td>${r.vb.toFixed(dp)}</td><td>${r.a>0&&r.b>0?'Yes':'No'}</td></tr>`).join('')}</tbody></table>`;}
+function taxGraphSeries(){if(!taxCompareState)return {x:[],a:[],b:[]};let {rows,idx,sumA,sumB}=taxCompareState,kind=$('taxGraphData').value;if(kind==='indices'){let chosen=idx.filter(x=>$('taxIndexKind').value==='all'||x.kind===$('taxIndexKind').value);return {x:chosen.map(x=>x.name),a:chosen.map(x=>x.value),b:[],labels:['Index value']};}let relative=kind==='relative';return {x:rows.map(r=>r.name),a:rows.map(r=>relative?(sumA?100*r.a/sumA:0):r.a),b:rows.map(r=>relative?(sumB?100*r.b/sumB:0):r.b),labels:['Community A','Community B']};}
+function renderTaxCompareGraph(){if(!taxCompareState||typeof Plotly==='undefined')return;let d=taxGraphSeries(),type=$('taxGraphType').value,series=[],isIndex=$('taxGraphData').value==='indices';if(isIndex){series=[{x:d.x,y:d.a,type:type==='line'?'scatter':'bar',mode:'lines+markers',name:d.labels?.[0]||'Index value'}];}else if(type==='line'){series=[{x:d.x,y:d.a,type:'scatter',mode:'lines+markers',name:'Community A'},{x:d.x,y:d.b,type:'scatter',mode:'lines+markers',name:'Community B'}];}else if(type==='barline'){series=[{x:d.x,y:d.a,type:'bar',name:'Community A'},{x:d.x,y:d.b,type:'scatter',mode:'lines+markers',name:'Community B',yaxis:'y'}];}else{series=[{x:d.x,y:d.a,type:'bar',name:'Community A'},{x:d.x,y:d.b,type:'bar',name:'Community B'}];if(type==='stack')series.forEach(t=>t.offsetgroup='stacked');}
+ let layout={title:$('taxGraphTitle').value,paper_bgcolor:'#fff',plot_bgcolor:'#fff',font:{family:'Arial',size:12},margin:{l:65,r:25,t:55,b:110},xaxis:{title:$('taxGraphX').value,tickangle:-35,automargin:true},yaxis:{title:$('taxGraphY').value,range:isIndex?[0,1]:undefined,gridcolor:'#e8edf4'},barmode:type==='stack'?'stack':'group',legend:{orientation:'h',y:-.3}};Plotly.newPlot('taxComparePlot',series,layout,{responsive:true,displaylogo:false});}
+function downloadTaxCompare(){if(!taxCompareState)return;let rows=[['Index','Value','Type','Formula','Interpretation'],...taxCompareState.idx.map(x=>[x.name,x.value,x.kind,x.formula,x.desc])];download('freeresearch_two_community_indices.csv',rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n'));}
+function downloadTaxTable(){if(!taxCompareState)return;let {rows}=taxCompareState;let mode=$('taxTableMode').value,dp=Number($('taxPrecision').value),{sumA,sumB}=taxCompareState;let out=[['Taxon','Community A','Community B','Shared']];rows.forEach(r=>out.push([r.name,mode==='relative'?(sumA?100*r.a/sumA:0).toFixed(dp):mode==='presence'?(r.a>0?1:0):r.a,mode==='relative'?(sumB?100*r.b/sumB:0).toFixed(dp):mode==='presence'?(r.b>0?1:0):r.b,r.a>0&&r.b>0?'Yes':'No']));download('freeresearch_community_comparison_table.csv',out.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n'));}
+function downloadTaxGraph(fmt){if(fmt==='csv'){if(!taxCompareState)return;let d=taxGraphSeries(),out=[['Taxon / index','Community A / index value','Community B'],...d.x.map((x,i)=>[x,d.a[i],d.b?.[i]??''])];download('freeresearch_community_graph_data.csv',out.map(r=>r.join(',')).join('\n'));return;}if(typeof Plotly!=='undefined'&&taxCompareState)Plotly.downloadImage('taxComparePlot',{format:fmt,filename:'freeresearch_community_comparison',width:2200,height:1400,scale:2});}
 </script>
 </body>
 </html>
