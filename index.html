@@ -19,7 +19,43 @@ main{min-width:0}.topbar{height:72px;background:#fff;border-bottom:1px solid var
 @media(max-width:1000px){.shell{grid-template-columns:205px 1fr}.labgrid{grid-template-columns:repeat(2,1fr)}.workspace{grid-template-columns:290px 1fr}.stats{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:720px){.shell{display:block}aside{padding:12px;gap:12px}.brand{padding:3px 8px}.nav{display:flex;overflow:auto}.navgroup{display:flex;align-items:center}.navlabel,.sidefoot{display:none}.nav button{white-space:nowrap;width:auto;padding:8px 10px}.topbar{height:54px;padding:0 16px}.content{padding:22px 15px}.workspace{grid-template-columns:1fr}.labgrid{grid-template-columns:1fr}.heading{display:block}.heading .btn{margin-top:14px}.stats{gap:9px}.card{padding:15px}.metrics{grid-template-columns:repeat(2,1fr)}}
 </style>
-<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js">
+let structureRows=[],betaState=null;
+function structureParse(text){
+ let lines=text.trim().split(/\r?\n/).filter(Boolean),out=[];
+ if(lines.length<2)throw Error('Enter a header and at least one abundance row.');
+ for(let i=0;i<lines.length;i++){let p=lines[i].split(/[,\t;]/).map(v=>v.trim().replace(/^"|"$/g,''));if(i===0&&!Number.isFinite(Number(p[1])))continue;if(p.length<2)continue;let n=Number(p[1]);if(!p[0]||!Number.isFinite(n)||n<0)throw Error('Enter taxon names and non-negative numeric counts (row '+(i+1)+').');if(n>0)out.push({name:p[0],count:n});}
+ if(!out.length)throw Error('No positive abundance values found.');if(new Set(out.map(x=>x.name)).size!==out.length)throw Error('Duplicate taxon names are not allowed.');return out;
+}
+function modelCurve(n,model,obs){
+ let a=[];
+ if(model==='broken'){for(let r=1;r<=n;r++){let z=0;for(let j=r;j<=n;j++)z+=1/j;a.push(z/n)}}
+ else if(model==='lognormal'){let mu=(n+1)/2,sd=Math.max(1,n/3);for(let r=1;r<=n;r++)a.push(Math.exp(-.5*((r-mu)/sd)**2))}
+ else{let best=.5,err=Infinity;for(let k=.01;k<.991;k+=.002){let e=obs.reduce((z,v,i)=>z+(Math.log(Math.max(v,1e-12))-Math.log((1-k)*Math.pow(k,i)))**2,0);if(e<err){err=e;best=k}}for(let i=0;i<n;i++)a.push((1-best)*Math.pow(best,i))}
+ let sum=a.reduce((x,y)=>x+y,0);return a.map(x=>x/sum);
+}
+function runCommunityStructure(){try{
+ structureRows=structureParse($('structAbund').value).sort((a,b)=>b.count-a.count);let N=structureRows.reduce((a,x)=>a+x.count,0),obs=structureRows.map(x=>x.count/N),model=$('structModel').value,pred=modelCurve(obs.length,model,obs),label={geometric:'Geometric series',broken:'Broken-stick model',lognormal:'Log-normal-like rank curve'}[model];
+ if(typeof Plotly!=='undefined')Plotly.newPlot('rankAbundancePlot',[{x:obs.map((_,i)=>i+1),y:obs.map(Math.log10),type:'scatter',mode:'lines+markers',name:'Observed'},{x:pred.map((_,i)=>i+1),y:pred.map(Math.log10),type:'scatter',mode:'lines+markers',name:label}],{title:'Rank–abundance curve',xaxis:{title:'Species rank (most to least abundant)',dtick:1},yaxis:{title:'log₁₀(relative abundance)'},margin:{l:65,r:20,t:50,b:60},paper_bgcolor:'#fff',plot_bgcolor:'#fff',legend:{orientation:'h',y:-.25}},{responsive:true,displaylogo:false});
+ let J=obs.length>1?-obs.reduce((a,p)=>a+p*Math.log(p),0)/Math.log(obs.length):1,top=obs[0],shape=J>.75?'relatively even':J>.4?'moderately uneven':'strongly dominated by a few taxa';
+ $('rankInterpretation').textContent=`${structureRows.length} taxa and ${fmt(N)} individuals. Pielou evenness = ${J.toFixed(3)}; the most abundant taxon contributes ${(100*top).toFixed(1)}%. The community is ${shape}. The ${label} curve is a theoretical reference; visual proximity is descriptive and does not establish the ecological mechanism.`;
+ }catch(e){$('rankInterpretation').textContent=e.message}}
+function parseBetaMatrix(){let lines=$('betaMatrix').value.trim().split(/\r?\n/).filter(Boolean),r=lines.map(x=>x.split(/[,\t;]/).map(v=>v.trim().replace(/^"|"$/g,'')));if(r.length<2||r[0].length<3)throw Error('Provide a taxon column and at least two community columns.');let names=r[0].slice(1),data=r.slice(1).filter(x=>x[0]);if(new Set(names).size!==names.length)throw Error('Community names must be unique.');let vals=data.map((x,i)=>names.map((_,j)=>{let v=Number(x[j+1]);if(!Number.isFinite(v)||v<0)throw Error('Invalid abundance in row '+(i+2));return v}));return {names,vals}}
+function runBetaDiversity(){try{let {names,vals}=parseBetaMatrix(),pairs=[];for(let a=0;a<names.length;a++)for(let b=a+1;b<names.length;b++){let A=vals.map(x=>x[a]),B=vals.map(x=>x[b]),pa=A.map(x=>x>0),pb=B.map(x=>x>0),shared=pa.filter((x,i)=>x&&pb[i]).length,sa=pa.filter(Boolean).length,sb=pb.filter(Boolean).length,u=pa.filter((x,i)=>x||pb[i]).length,na=A.reduce((x,y)=>x+y,0),nb=B.reduce((x,y)=>x+y,0);pairs.push({pair:names[a]+' vs '+names[b],j: u?1-shared/u:0,s:sa+sb?1-2*shared/(sa+sb):0,bc:na+nb?A.reduce((x,v,i)=>x+Math.abs(v-B[i]),0)/(na+nb):0})}betaState=pairs;
+ $('betaResults').innerHTML='<div class="tablewrap"><table><thead><tr><th>Community pair</th><th>Jaccard dissimilarity</th><th>Sørensen dissimilarity</th><th>Bray–Curtis dissimilarity</th></tr></thead><tbody>'+pairs.map(p=>`<tr><td>${p.pair}</td><td>${p.j.toFixed(4)}</td><td>${p.s.toFixed(4)}</td><td>${p.bc.toFixed(4)}</td></tr>`).join('')+'</tbody></table></div><div class="plot-toolbar"><button onclick="downloadBeta()">Download beta-diversity CSV</button></div>';
+ if(typeof Plotly!=='undefined')Plotly.newPlot('betaPlot',[{x:pairs.map(p=>p.pair),y:pairs.map(p=>p.j),type:'bar',name:'Jaccard'},{x:pairs.map(p=>p.pair),y:pairs.map(p=>p.s),type:'bar',name:'Sørensen'},{x:pairs.map(p=>p.pair),y:pairs.map(p=>p.bc),type:'scatter',mode:'lines+markers',name:'Bray–Curtis',yaxis:'y2'}],{title:'Pairwise beta-diversity dissimilarity',barmode:'group',xaxis:{title:'Community pair',tickangle:-25},yaxis:{title:'Presence/absence dissimilarity',range:[0,1]},yaxis2:{title:'Abundance-based dissimilarity',overlaying:'y',side:'right',range:[0,1]},margin:{l:60,r:65,t:50,b:110},paper_bgcolor:'#fff',plot_bgcolor:'#fff',legend:{orientation:'h',y:-.35}},{responsive:true,displaylogo:false});
+ }catch(e){$('betaResults').innerHTML=`<div class="notice">${e.message}</div>`}}
+function downloadBeta(){if(!betaState)return;download('freeresearch_beta_diversity.csv',[['Community pair','Jaccard dissimilarity','Sorensen dissimilarity','Bray-Curtis dissimilarity'],...betaState.map(p=>[p.pair,p.j,p.s,p.bc])].map(r=>r.join(',')).join('\n'))}
+function runCommunityGOF(){try{let d=structureParse($('gofAbund').value),N=d.reduce((a,x)=>a+x.count,0),E=N/d.length,chi=d.reduce((a,x)=>a+(x.count-E)**2/E,0),df=d.length-1,p=df>0?chiTail(chi,df):NaN,small=E<5;
+ $('gofMetrics').innerHTML=[['χ² statistic',chi.toFixed(4)],['Degrees of freedom',df],['p-value',Number.isFinite(p)?p.toExponential(4):'Not defined'],['Expected / taxon',E.toFixed(3)]].map(x=>`<div class="metric"><span>${x[0]}</span><strong>${x[1]}</strong></div>`).join('');
+ if(typeof Plotly!=='undefined')Plotly.newPlot('gofPlot',[{x:d.map(x=>x.name),y:d.map(x=>x.count),type:'bar',name:'Observed'},{x:d.map(x=>x.name),y:d.map(()=>E),type:'scatter',mode:'lines+markers',name:'Expected (equal abundance)'}],{title:'Observed versus expected abundance',xaxis:{title:'Taxon',tickangle:-30},yaxis:{title:'Individuals'},barmode:'group',margin:{l:60,r:20,t:50,b:100},paper_bgcolor:'#fff',plot_bgcolor:'#fff',legend:{orientation:'h',y:-.25}},{responsive:true,displaylogo:false});
+ $('gofInterpretation').textContent=(p<.05?'Reject':'Do not reject')+' the equal-abundance null hypothesis at α = 0.05. '+(small?'WARNING: expected counts are below 5; the chi-square approximation may be unreliable.':'Expected counts meet the common minimum guideline of 5; also verify design assumptions.');
+ $('gofTable').innerHTML='<div class="tablewrap"><table><thead><tr><th>Taxon</th><th>Observed</th><th>Expected</th><th>(O−E)²/E</th></tr></thead><tbody>'+d.map(x=>`<tr><td>${x.name}</td><td>${fmt(x.count)}</td><td>${E.toFixed(3)}</td><td>${((x.count-E)**2/E).toFixed(4)}</td></tr>`).join('')+'</tbody></table></div>';
+ }catch(e){$('gofInterpretation').textContent=e.message}}
+function showStructureTab(t){['rank','beta','gof'].forEach(x=>$('structure-'+x).style.display=x===t?'block':'none');document.querySelectorAll('[data-structtab]').forEach(b=>b.classList.toggle('active',b.dataset.structtab===t));if(t==='rank'&&structureRows.length)runCommunityStructure();if(t==='beta'&&betaState)runBetaDiversity();if(t==='gof'&&gofState)runCommunityGOF()}
+document.querySelectorAll('[data-structtab]').forEach(b=>b.addEventListener('click',()=>showStructureTab(b.dataset.structtab)));
+
+</script>
 <style>
 .pro-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.pro-grid .field{margin:7px 0}
 .pro-grid input,.pro-grid select{width:100%;padding:8px;border:1px solid #dce4ee;border-radius:8px}
@@ -207,15 +243,65 @@ Species F,0,4</textarea><div class="hint">Required columns: Taxon, Community A, 
     <div class="notice">Interpretation: presence/absence indices treat all recorded taxa equally; abundance-based indices also use counts. Compare communities with consistent sampling effort, taxonomic resolution and identification. Similarity and dissimilarity indices describe compositional resemblance, not ecological cause.</div>
    </div>
 
+
+   <div class="card" id="communityStructure" style="margin-top:18px">
+    <div class="resulttop"><div><h2 class="sectiontitle">Community structure</h2><p class="sub">Rank-abundance patterns, beta diversity, abundance-distribution models and chi-square goodness-of-fit.</p></div><span class="tag">Dedicated module</span></div>
+    <div class="tabs"><button class="tab active" data-structtab="rank">Rank-abundance &amp; models</button><button class="tab" data-structtab="beta">Beta diversity</button><button class="tab" data-structtab="gof">Chi-square goodness-of-fit</button></div>
+    <div id="structure-rank"><div class="workspace">
+     <div class="card control" style="box-shadow:none;background:#f9fbfe"><h3>Single-community abundance</h3><p class="sub">One taxon and count per row.</p>
+      <div class="field"><label>Species abundance data</label><textarea id="structAbund" spellcheck="false">Species,Abundance
+Species A,24
+Species B,18
+Species C,12
+Species D,8
+Species E,5
+Species F,3
+Species G,2
+Species H,1
+Species I,1</textarea></div>
+      <div class="field"><label>Abundance-distribution model</label><select id="structModel"><option value="geometric">Geometric series (niche pre-emption)</option><option value="broken">Broken-stick model</option><option value="lognormal">Log-normal-like rank curve</option></select></div>
+      <button class="btn" style="width:100%" onclick="runCommunityStructure()">Analyse community structure</button><p class="hint">Theoretical curves are visual references, not proof of ecological mechanisms.</p>
+     </div>
+     <div class="card results" style="box-shadow:none"><h3>Rank-abundance curve</h3><p class="sub">Observed relative abundance and selected theoretical model.</p><div id="rankAbundancePlot" class="plot-area"></div><div id="rankInterpretation" class="notice">Run analysis to view the curve and interpretation.</div></div>
+    </div></div>
+    <div id="structure-beta" style="display:none"><div class="workspace">
+     <div class="card control" style="box-shadow:none;background:#f9fbfe"><h3>Multi-community abundance matrix</h3><p class="sub">Rows are taxa; columns are communities. Use zero when absent.</p>
+      <div class="field"><label>CSV / tab-separated matrix</label><textarea id="betaMatrix" spellcheck="false">Taxon,Community A,Community B,Community C
+Species A,12,8,0
+Species B,7,0,4
+Species C,3,5,2
+Species D,0,9,1
+Species E,2,1,7
+Species F,0,4,3</textarea></div>
+      <button class="btn" style="width:100%" onclick="runBetaDiversity()">Calculate beta diversity</button><p class="hint">At least two community columns; non-negative abundances only.</p>
+     </div>
+     <div class="card results" style="box-shadow:none"><h3>Pairwise beta-diversity results</h3><p class="sub">Jaccard, Sørensen and Bray–Curtis dissimilarity for every pair.</p><div id="betaResults"><div class="notice">Enter a community matrix and calculate beta diversity.</div></div><div id="betaPlot" class="plot-area"></div></div>
+    </div></div>
+    <div id="structure-gof" style="display:none"><div class="workspace">
+     <div class="card control" style="box-shadow:none;background:#f9fbfe"><h3>Goodness-of-fit test</h3><p class="sub">Test equal expected abundance among observed taxa.</p>
+      <div class="field"><label>Observed abundance data</label><textarea id="gofAbund" spellcheck="false">Species,Observed
+Species A,24
+Species B,18
+Species C,12
+Species D,8
+Species E,5
+Species F,3</textarea></div>
+      <button class="btn" style="width:100%" onclick="runCommunityGOF()">Run chi-square test</button><p class="hint">H₀: all observed taxa have equal expected abundance. This is a specific null model.</p>
+     </div>
+     <div class="card results" style="box-shadow:none"><h3>Observed versus expected abundance</h3><div id="gofMetrics" class="metrics"></div><div id="gofPlot" class="plot-area"></div><div id="gofInterpretation" class="notice">Run the test to view statistic, p-value and interpretation.</div><div id="gofTable"></div></div>
+    </div></div>
+    <div class="notice">Interpret with representative sampling, comparable effort and consistent taxonomy. The chi-square approximation can be unreliable when expected counts are too small; consider justified pooling or an exact / simulation-based method.</div>
+   </div>
+
    <div class="card" style="margin-top:18px">
     <h3 class="sectiontitle">Ecological community analysis — extended roadmap</h3>
     <p class="sub">Additional methods represented in your uploaded biodiversity workbook are being incorporated as dedicated modules.</p>
     <div class="grid labgrid">
      <div><strong>Abundance &amp; diversity</strong><p class="hint">Berger–Parker, McIntosh, Brillouin, Q statistic, Shannon comparisons and pooled Pielou evenness.</p></div>
      <div><strong>Sampling &amp; richness</strong><p class="hint">Rarefaction, jackknife richness estimation, confidence intervals and sample-coverage comparisons.</p></div>
-     <div><strong>Community structure</strong><p class="hint">Rank-abundance curves, beta diversity, abundance-distribution models and chi-square goodness-of-fit.</p></div>
+     <div><strong>Community structure</strong><p class="hint">Implemented above: rank-abundance curves, beta-diversity comparisons, theoretical abundance-distribution curves and chi-square goodness-of-fit.</p></div>
     </div>
-    <div class="notice">These extended ecological methods are listed as planned until their individual calculations and validation tests are implemented. The existing alpha-diversity calculator remains available above.</div>
+    <div class="notice">Community-structure methods above are active. Rarefaction, jackknife richness estimation, confidence intervals and sample-coverage comparisons remain planned.</div>
    </div>
    </section>
    <section id="coming" class="view"><div class="eyebrow">Development roadmap</div><div class="heading"><div><h1>More laboratories are planned</h1><p>We will add these modules incrementally, prioritising free, browser-compatible and scientifically transparent implementations.</p></div><button class="btn secondary" onclick="showView('dashboard')">← Dashboard</button></div><div class="card"><h3>Planned modules</h3><p class="sub">The dashboard currently provides working mathematical modelling, biostatistics and biodiversity analysis tools. Other modules are roadmap placeholders, not active calculation engines yet.</p><ul><li>QM/MM learning utilities and molecular structure visualisation</li><li>Docking result visualisation and MD trajectory analysis</li><li>Primer design, reverse complement and ePCR utilities</li><li>Virtual agarose/PAGE gel and Southern/Western blot studio</li><li>Ant colony optimisation and genetic algorithm visualisation</li><li>Bayesian inference, sampling, rarefaction and multivariate statistics</li><li>EasyQGIS-style spatial analysis</li></ul></div></section>
