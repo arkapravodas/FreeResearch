@@ -20,6 +20,7 @@ main{min-width:0}.topbar{height:72px;background:#fff;border-bottom:1px solid var
 @media(max-width:720px){.shell{display:block}aside{padding:12px;gap:12px}.brand{padding:3px 8px}.nav{display:flex;overflow:auto}.navgroup{display:flex;align-items:center}.navlabel,.sidefoot{display:none}.nav button{white-space:nowrap;width:auto;padding:8px 10px}.topbar{height:54px;padding:0 16px}.content{padding:22px 15px}.workspace{grid-template-columns:1fr}.labgrid{grid-template-columns:1fr}.heading{display:block}.heading .btn{margin-top:14px}.stats{gap:9px}.card{padding:15px}.metrics{grid-template-columns:repeat(2,1fr)}}
 </style>
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 /* High-resolution Plotly export: preserve on-screen proportions, then scale PNG pixels. */
 (function () {
@@ -258,7 +259,7 @@ Species F,0,4</textarea><div class="hint">Required columns: Taxon, Community A, 
 
    <div class="card" id="communityStructure" style="margin-top:18px">
     <div class="resulttop"><div><h2 class="sectiontitle">Community structure</h2><p class="sub">Rank-abundance patterns, beta diversity, abundance-distribution models and chi-square goodness-of-fit.</p></div><span class="tag">Dedicated module</span></div>
-    <div class="tabs"><button class="tab active" data-structtab="rank">Rank-abundance &amp; models</button><button class="tab" data-structtab="beta">Beta diversity</button><button class="tab" data-structtab="gof">Chi-square goodness-of-fit</button></div>
+    <div class="tabs"><button class="tab active" data-structtab="rank">Rank-abundance &amp; models</button><button class="tab" data-structtab="beta">Beta diversity</button><button class="tab" data-structtab="gof">Chi-square goodness-of-fit</button><button class="tab" data-structtab="data">Data table &amp; upload</button></div>
     <div id="structure-rank"><div class="workspace">
      <div class="card control" style="box-shadow:none;background:#f9fbfe"><h3>Single-community abundance</h3><p class="sub">One taxon and count per row.</p>
       <div class="field"><label>Species abundance data</label><textarea id="structAbund" spellcheck="false">Species,Abundance
@@ -302,6 +303,30 @@ Species F,3</textarea></div>
      </div>
      <div class="card results" style="box-shadow:none"><h3>Observed versus expected abundance</h3><div id="gofMetrics" class="metrics"></div><div id="gofPlot" class="plot-area"></div><div id="gofInterpretation" class="notice">Run the test to view statistic, p-value and interpretation.</div><div id="gofTable"></div></div>
     </div></div>
+    <div id="structure-data" style="display:none">
+     <div class="card" style="box-shadow:none;margin-bottom:14px">
+      <h3>Import or build a community abundance matrix</h3>
+      <p class="sub">Upload an Excel workbook (.xlsx) or CSV file, paste a matrix, or edit the table directly. Rows represent taxa; columns represent sampling groups / communities; cells contain non-negative abundance counts.</p>
+      <div class="row2">
+       <div class="field"><label>Upload .xlsx or .csv</label><input id="communityFile" type="file" accept=".xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onchange="importCommunityFile(this.files[0])"><p class="hint">For Excel, the first worksheet is imported. Header row should contain Taxon followed by community/group names.</p></div>
+       <div class="field"><label>Paste matrix (CSV / tab-separated)</label><textarea id="communityPaste" placeholder="Taxon,Group A,Group B\nSpecies 1,3,1\nSpecies 2,0,4" style="min-height:82px"></textarea><button class="btn secondary" type="button" onclick="loadCommunityPaste()">Load pasted matrix</button></div>
+      </div>
+      <div class="field"><label>Community columns to include in calculations (comma-separated; blank = all detected community columns)</label><input id="communityColumns" placeholder="e.g. A,B,C,D,E,F,G,H,I,J,K"></div>
+      <div class="hint">Calculated columns such as ni, pi, ln(pi), pi×ln(pi), H′, Hmax, lnS and Pielou evenness are recognised as derived fields and excluded from the abundance matrix. Summary rows such as S, N and N/S are also excluded. Check the selected community columns before calculating.</div>
+     </div>
+     <div class="card" style="box-shadow:none;margin-bottom:14px">
+      <div class="resulttop"><div><h3>Editable abundance table</h3><p class="sub">Click any cell to edit. Add or remove taxa and community columns as needed.</p></div><div class="plot-toolbar"><button type="button" onclick="addCommunityTaxon()">+ Add taxon</button><button type="button" onclick="addCommunityColumn()">+ Add group</button><button type="button" onclick="calculateCommunityTable()">Calculate diversity</button><button type="button" onclick="sendCommunityMatrixToBeta()">Use for beta diversity</button></div></div>
+      <div id="communityEditableTable" class="tablewrap"><div class="notice">Upload a workbook / CSV or paste a matrix to begin.</div></div>
+      <div class="plot-toolbar"><button type="button" onclick="downloadCommunityWorkbook()">Download Excel workbook (.xlsx)</button><button type="button" onclick="downloadCommunityMatrixCSV()">Download abundance CSV</button></div>
+     </div>
+     <div class="card" style="box-shadow:none">
+      <div class="resulttop"><div><h3>Shannon–Wiener calculations and community diversity</h3><p class="sub">For each community: ni, pi, ln(pi), pi × ln(pi), Shannon H′, richness S, total N, Hmax and Pielou evenness.</p></div><span class="tag">Calculated from editable matrix</span></div>
+      <div id="communitySummaryTable"><div class="notice">Load or enter data, then select Calculate diversity.</div></div>
+      <h3 style="margin-top:18px">Taxon-level Shannon contribution table</h3>
+      <div id="communityShannonTable"></div>
+      <p class="hint">Zero-abundance taxon-community combinations are shown with pi = 0 and ln(pi) / pi×ln(pi) left blank; they contribute zero to H′. The table uses raw abundance counts and recalculates proportions separately within each community.</p>
+     </div>
+    </div>
     <div class="notice">Interpret with representative sampling, comparable effort and consistent taxonomy. The chi-square approximation can be unreliable when expected counts are too small; consider justified pooling or an exact / simulation-based method.</div>
    </div>
 
@@ -622,8 +647,51 @@ function runCommunityGOF(){try{let d=structureParse($('gofAbund').value),N=d.red
  $('gofTable').innerHTML='<div class="tablewrap"><table><thead><tr><th>Taxon</th><th>Observed</th><th>Expected</th><th>(O−E)²/E</th></tr></thead><tbody>'+d.map(x=>`<tr><td>${x.name}</td><td>${fmt(x.count)}</td><td>${E.toFixed(3)}</td><td>${((x.count-E)**2/E).toFixed(4)}</td></tr>`).join('')+'</tbody></table></div>';
  gofState=true;
  }catch(e){$('gofInterpretation').textContent=e.message}}
-function showStructureTab(t){['rank','beta','gof'].forEach(x=>$('structure-'+x).style.display=x===t?'block':'none');document.querySelectorAll('[data-structtab]').forEach(b=>b.classList.toggle('active',b.dataset.structtab===t));if(t==='rank'&&structureRows.length)runCommunityStructure();if(t==='beta'&&betaState)runBetaDiversity();if(t==='gof'&&gofState)runCommunityGOF()}
+function showStructureTab(t){['rank','beta','gof','data'].forEach(x=>$('structure-'+x).style.display=x===t?'block':'none');document.querySelectorAll('[data-structtab]').forEach(b=>b.classList.toggle('active',b.dataset.structtab===t));if(t==='rank'&&structureRows.length)runCommunityStructure();if(t==='beta'&&betaState)runBetaDiversity();if(t==='gof'&&gofState)runCommunityGOF();if(t==='data'&&communityMatrix.length)renderCommunityEditableTable()}
 document.querySelectorAll('[data-structtab]').forEach(b=>b.addEventListener('click',()=>showStructureTab(b.dataset.structtab)));
+
+// Spreadsheet-based community data editor and diversity workbook
+let communityMatrix=[],communityHeaders=[],communityCalculated=null;
+const communityDerivedNames=new Set(['ni','pi','ln(pi)','lnpi','pi*ln(pi)','pi×ln(pi)','h\'','h′','hmax','lns','heven','s','n','n/s','total','total abundance','shannon','shannon index','pielou','pielou evenness']);
+function communityCleanKey(s){return String(s||'').trim().toLowerCase().replace(/\s+/g,' ').replace(/\s/g,'')}
+function communityIsSummary(s){return /^(s|n|n\/s|h['′]?|hmax|lns|heven|total|total abundance|richness|shannon|shannon index)$/i.test(String(s||'').trim())}
+function communityParseRows(rows){
+ if(!rows||rows.length<2)throw Error('The file must contain a header row and at least one taxon row.');
+ let headerRow=0;for(let k=0;k<Math.min(rows.length,15);k++){let first=String((rows[k]||[])[0]??'').trim().toLowerCase();let filled=(rows[k]||[]).filter(v=>String(v??'').trim()!=='').length;if(/^(taxon|species|acronym|code|name)$/i.test(first)&&filled>=3){headerRow=k;break;}if(k>0&&filled>=3){let numericBelow=(rows[k+1]||[]).slice(1).filter(v=>v!==''&&Number.isFinite(Number(v))).length;if(numericBelow>=2){headerRow=k;break;}}}
+ let header=(rows[headerRow]||[]).map(x=>String(x??'').trim());if(header.length<3)throw Error('Provide a taxon-name column and at least two community columns.');
+ let taxonIdx=0;let candidates=[];
+ for(let c=1;c<header.length;c++){let key=communityCleanKey(header[c]);if(!header[c]||communityDerivedNames.has(key))continue;candidates.push(c)}
+ if(candidates.length<1)throw Error('No numeric community columns were detected.');
+ let matrix=[];
+ for(let r=headerRow+1;r<rows.length;r++){let row=rows[r]||[],taxon=String(row[taxonIdx]??'').trim();if(!taxon||communityIsSummary(taxon))continue;
+  let values=candidates.map(c=>{let raw=row[c];if(raw===undefined||raw===null||String(raw).trim()==='')return 0;let n=Number(raw);if(!Number.isFinite(n)||n<0)throw Error('Invalid non-negative abundance for taxon “'+taxon+'” in column “'+header[c]+'”.');return n});
+  if(values.some(v=>v!==0))matrix.push({taxon,values});
+ }
+ if(!matrix.length)throw Error('No taxa with positive abundances were found.');
+ let names=candidates.map(c=>header[c]||('Community '+(c+1)));if(new Set(names).size!==names.length)throw Error('Community column names must be unique.');
+ return {headers:names,matrix};
+}
+function communitySetData(parsed){communityHeaders=parsed.headers;communityMatrix=parsed.matrix;communityCalculated=null;$('communityColumns').value=communityHeaders.join(', ');renderCommunityEditableTable();$('communitySummaryTable').innerHTML='<div class="notice">Data loaded. Select Calculate diversity to generate Shannon–Wiener tables.</div>';$('communityShannonTable').innerHTML='';}
+function importCommunityFile(file){if(!file)return;if(typeof XLSX==='undefined'){alert('The spreadsheet reader could not load. Check your internet connection and try again.');return;}let reader=new FileReader();reader.onload=e=>{try{let wb=XLSX.read(e.target.result,{type:/\.csv$/i.test(file.name)?'string':'array',cellDates:false});let ws=wb.Sheets[wb.SheetNames[0]];let rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:true});communitySetData(communityParseRows(rows));}catch(err){alert('Could not import file: '+err.message)}};reader.onerror=()=>alert('The selected file could not be read.');if(/\.csv$/i.test(file.name)){reader.readAsText(file)}else reader.readAsArrayBuffer(file)}
+function loadCommunityPaste(){try{if(typeof XLSX==='undefined')throw Error('Spreadsheet parser is unavailable.');let wb=XLSX.read($('communityPaste').value,{type:'string',raw:true});let rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:'',raw:true});communitySetData(communityParseRows(rows));}catch(e){alert(e.message)}}
+function renderCommunityEditableTable(){if(!communityMatrix.length){$('communityEditableTable').innerHTML='<div class="notice">Upload or paste a matrix to begin.</div>';return;}let html='<table><thead><tr><th>Taxon</th>'+communityHeaders.map((x,i)=>`<th><input aria-label="Community name" value="${escapeCommunityHtml(x)}" onchange="communityHeaders[${i}]=this.value;communityCalculated=null" style="width:110px;min-width:90px"></th>`).join('')+'<th>Action</th></tr></thead><tbody>';
+ communityMatrix.forEach((r,i)=>{html+='<tr><td><input value="'+escapeCommunityHtml(r.taxon)+'" onchange="communityMatrix['+i+'].taxon=this.value;communityCalculated=null" style="width:130px;min-width:100px"></td>'+r.values.map((v,j)=>`<td><input type="number" min="0" step="any" value="${v}" onchange="communityMatrix[${i}].values[${j}]=Number(this.value);communityCalculated=null" style="width:82px;min-width:70px"></td>`).join('')+`<td><button type="button" onclick="removeCommunityTaxon(${i})">Remove</button></td></tr>`});html+='</tbody></table>';$('communityEditableTable').innerHTML=html;}
+function escapeCommunityHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function addCommunityTaxon(){if(!communityHeaders.length){communityHeaders=['Community A','Community B'];}communityMatrix.push({taxon:'New taxon '+(communityMatrix.length+1),values:communityHeaders.map(()=>0)});renderCommunityEditableTable()}
+function addCommunityColumn(){if(!communityHeaders.length){communityHeaders=['Community A'];}communityHeaders.push('Community '+String.fromCharCode(65+communityHeaders.length));communityMatrix.forEach(r=>r.values.push(0));$('communityColumns').value=communityHeaders.join(', ');renderCommunityEditableTable()}
+function removeCommunityTaxon(i){communityMatrix.splice(i,1);communityCalculated=null;renderCommunityEditableTable()}
+function calculateCommunityTable(){try{
+ if(!communityMatrix.length||communityHeaders.length<1)throw Error('Load or enter an abundance matrix first.');let selected=$('communityColumns').value.split(',').map(x=>x.trim()).filter(Boolean);if(selected.length){let missing=selected.filter(x=>!communityHeaders.includes(x));if(missing.length)throw Error('Unknown community column(s): '+missing.join(', '));}else selected=communityHeaders.slice();let idx=selected.map(x=>communityHeaders.indexOf(x));let taxa=communityMatrix.filter(r=>r.taxon.trim()).map(r=>({taxon:r.taxon,values:r.values}));if(new Set(taxa.map(r=>r.taxon)).size!==taxa.length)throw Error('Taxon names must be unique.');
+ let summaries=[],details=[];for(let k=0;k<idx.length;k++){let col=idx[k],vals=taxa.map(r=>Number(r.values[col]||0));if(vals.some(v=>!Number.isFinite(v)||v<0))throw Error('Abundances must be non-negative numbers.');let N=vals.reduce((a,b)=>a+b,0),positive=vals.filter(v=>v>0),S=positive.length;if(!N)throw Error('Community “'+selected[k]+'” has zero total abundance.');let H=0;taxa.forEach((r,i)=>{let ni=vals[i],pi=ni/N,ln=pi>0?Math.log(pi):null,term=pi>0?pi*ln:0;H-=term;details.push({community:selected[k],taxon:r.taxon,ni,pi,lnpi:ln,pilnpi:term})});summaries.push({community:selected[k],S,N,H,Hmax:S>0?Math.log(S):0,J:S>1?H/Math.log(S):1});}
+ communityCalculated={summaries,details,selected};renderCommunityCalculationTables();
+ }catch(e){$('communitySummaryTable').innerHTML='<div class="notice">'+escapeCommunityHtml(e.message)+'</div>';}}
+function renderCommunityCalculationTables(){let s=communityCalculated.summaries,d=communityCalculated.details;$('communitySummaryTable').innerHTML='<div class="tablewrap"><table><thead><tr><th>Community</th><th>Richness (S)</th><th>Total N</th><th>Shannon H′</th><th>Hmax = ln(S)</th><th>Pielou J′</th></tr></thead><tbody>'+s.map(x=>`<tr><td>${escapeCommunityHtml(x.community)}</td><td>${x.S}</td><td>${x.N}</td><td>${x.H.toFixed(6)}</td><td>${x.Hmax.toFixed(6)}</td><td>${x.J.toFixed(6)}</td></tr>`).join('')+'</tbody></table></div>';
+ $('communityShannonTable').innerHTML='<div class="tablewrap"><table><thead><tr><th>Community</th><th>Taxon</th><th>ni</th><th>pi</th><th>ln(pi)</th><th>pi × ln(pi)</th></tr></thead><tbody>'+d.map(x=>`<tr><td>${escapeCommunityHtml(x.community)}</td><td>${escapeCommunityHtml(x.taxon)}</td><td>${x.ni}</td><td>${x.pi.toFixed(8)}</td><td>${x.lnpi===null?'—':x.lnpi.toFixed(6)}</td><td>${x.pilnpi.toFixed(8)}</td></tr>`).join('')+'</tbody></table></div>';
+}
+function sendCommunityMatrixToBeta(){if(!communityMatrix.length){alert('Load an abundance matrix first.');return;}let rows=[['Taxon',...communityHeaders],...communityMatrix.map(r=>[r.taxon,...r.values])];$('betaMatrix').value=rows.map(r=>r.map(v=>String(v??'').replace(/,/g,' ')).join(',')).join('\n');showStructureTab('beta');runBetaDiversity();}
+function downloadCommunityWorkbook(){try{if(typeof XLSX==='undefined')throw Error('Excel export library is unavailable. Check your internet connection.');if(!communityMatrix.length)throw Error('No abundance matrix to export.');if(!communityCalculated)calculateCommunityTable();if(!communityCalculated)throw Error('Calculate diversity before exporting.');let wb=XLSX.utils.book_new();let matrix=[['Taxon',...communityHeaders],...communityMatrix.map(r=>[r.taxon,...r.values])];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(matrix),'Abundance matrix');let detail=[['Community','Taxon','ni','pi','ln(pi)','pi × ln(pi)'],...communityCalculated.details.map(x=>[x.community,x.taxon,x.ni,x.pi,x.lnpi,x.pilnpi])];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(detail),'Shannon calculations');let summary=[['Community','Richness S','Total N','Shannon H-prime','Hmax ln(S)','Pielou J-prime'],...communityCalculated.summaries.map(x=>[x.community,x.S,x.N,x.H,x.Hmax,x.J])];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(summary),'Community summary');XLSX.writeFile(wb,'FreeResearch_community_diversity.xlsx');}catch(e){alert(e.message)}}
+function downloadCommunityMatrixCSV(){if(!communityMatrix.length){alert('No abundance matrix to export.');return;}let rows=[['Taxon',...communityHeaders],...communityMatrix.map(r=>[r.taxon,...r.values])];let csv=rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');download('FreeResearch_community_abundance_matrix.csv',csv)}
+
 </script>
 
 </body>
