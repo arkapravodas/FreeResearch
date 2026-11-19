@@ -20,6 +20,54 @@ main{min-width:0}.topbar{height:72px;background:#fff;border-bottom:1px solid var
 @media(max-width:720px){.shell{display:block}aside{padding:12px;gap:12px}.brand{padding:3px 8px}.nav{display:flex;overflow:auto}.navgroup{display:flex;align-items:center}.navlabel,.sidefoot{display:none}.nav button{white-space:nowrap;width:auto;padding:8px 10px}.topbar{height:54px;padding:0 16px}.content{padding:22px 15px}.workspace{grid-template-columns:1fr}.labgrid{grid-template-columns:1fr}.heading{display:block}.heading .btn{margin-top:14px}.stats{gap:9px}.card{padding:15px}.metrics{grid-template-columns:repeat(2,1fr)}}
 </style>
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script>
+/* High-resolution Plotly export: preserve on-screen proportions, then scale PNG pixels. */
+(function () {
+  if (typeof Plotly === 'undefined' || Plotly.__freeResearchHiResPatched) return;
+
+  function graphNode(gd) {
+    return typeof gd === 'string' ? document.getElementById(gd) : gd;
+  }
+  function dimensions(node) {
+    const rect = node && node.getBoundingClientRect ? node.getBoundingClientRect() : null;
+    const width = Math.max(320, Math.round((rect && rect.width) || (node && node.clientWidth) || 900));
+    const height = Math.max(240, Math.round((rect && rect.height) || (node && node.clientHeight) || 520));
+    return { width, height };
+  }
+
+  const originalNewPlot = Plotly.newPlot.bind(Plotly);
+  Plotly.newPlot = function (gd, data, layout, config) {
+    const node = graphNode(gd);
+    const size = dimensions(node);
+    const cfg = Object.assign({}, config || {});
+    cfg.toImageButtonOptions = Object.assign({}, cfg.toImageButtonOptions || {}, {
+      format: 'png',
+      filename: 'freeresearch_figure_high_resolution',
+      width: size.width,
+      height: size.height,
+      scale: 4
+    });
+    return originalNewPlot(gd, data, layout, cfg);
+  };
+
+  window.downloadPlotHighRes = function (gd, format, filename) {
+    const node = graphNode(gd);
+    if (!node || !node.data) return Promise.reject(new Error('Run the analysis to create this graph first.'));
+    const size = dimensions(node);
+    const isPng = String(format).toLowerCase() === 'png';
+    return Plotly.downloadImage(node, {
+      format: isPng ? 'png' : 'svg',
+      filename: filename || 'freeresearch_figure',
+      width: size.width,
+      height: size.height,
+      scale: isPng ? 4 : 1
+    });
+  };
+
+  Plotly.__freeResearchHiResPatched = true;
+})();
+</script>
+
 <style>
 .pro-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.pro-grid .field{margin:7px 0}
 .pro-grid input,.pro-grid select{width:100%;padding:8px;border:1px solid #dce4ee;border-radius:8px}
@@ -449,7 +497,7 @@ if(d.x){tr=[{x:d.x,y:d.y,type:'scatter',mode:type==='line'?'lines+markers':'mark
 else if(d.groups){d.groups.forEach((g,i)=>{if(type==='box')tr.push({y:g.values,type:'box',name:g.name,boxpoints:'outliers',marker:{color:cs[i%cs.length],outliercolor:'#D62728'}});else if(type==='barline'&&i===d.groups.length-1)tr.push({x:g.values.map((_,j)=>j+1),y:g.values,type:'scatter',mode:'lines+markers',name:g.name,yaxis:$('pubSecondary').value==='yes'?'y2':'y',line:{color:cs[(i+1)%cs.length],width:w}});else tr.push({x:g.values.map((_,j)=>j+1),y:g.values,type:type==='line'?'scatter':'bar',mode:type==='line'?'lines+markers':undefined,name:g.name,marker:{color:cs[i%cs.length],opacity:op},line:{color:cs[i%cs.length],width:w}})});if(type==='barline')layout.barmode='group';if($('pubSecondary').value==='yes')layout.yaxis2={title:'Secondary axis',overlaying:'y',side:'right'};if(type==='pie')tr=[{type:'pie',labels:d.groups.map(g=>g.name),values:d.groups.map(g=>g.values.length)}];if(type==='funnel')tr=[{type:'funnel',y:d.groups.map(g=>g.name),x:d.groups.map(g=>g.values.length),textinfo:'value+percent initial'}];if(type==='radar')tr=d.groups.map((g,i)=>({type:'scatterpolar',r:g.values.slice(0,8),theta:g.values.slice(0,8).map((_,j)=>'Obs '+(j+1)),fill:'toself',name:g.name}));if(type==='sunburst'||type==='treemap')tr=[{type:type,labels:['All groups',...d.groups.map(g=>g.name)],parents:['',...d.groups.map(_=>'All groups')],values:[d.groups.reduce((s,g)=>s+g.values.length,0),...d.groups.map(g=>g.values.length)]}]}
 else if(d.values){tr=[{x:d.values,type:'histogram',name:'Frequency',marker:{color:cs[0],opacity:op}}];if(type==='box')tr=[{y:d.values,type:'box',name:'Observations',boxpoints:'outliers',marker:{color:cs[0],outliercolor:'#D62728'}}]}
 Plotly.newPlot('publicationPlot',tr,layout,{responsive:true,displaylogo:false})}
-function downloadPublication(fmt){if(fmt==='csv'){let d=pubData(),lines=d.x?['X,Y',...d.x.map((x,i)=>`${x},${d.y[i]}`)]:d.values?['Value',...d.values]:['Group,Value',...d.groups.flatMap(g=>g.values.map(v=>`${g.name},${v}`))];download('freeresearch_figure_data.csv',lines.join('\n'));return}Plotly.downloadImage('publicationPlot',{format:fmt,filename:'freeresearch_publication_figure',width:2400,height:1600,scale:2})}
+function downloadPublication(fmt){if(fmt==='csv'){let d=pubData(),lines=d.x?['X,Y',...d.x.map((x,i)=>`${x},${d.y[i]}`)]:d.values?['Value',...d.values]:['Group,Value',...d.groups.flatMap(g=>g.values.map(v=>`${g.name},${v}`))];download('freeresearch_figure_data.csv',lines.join('\n'));return}downloadPlotHighRes('publicationPlot',fmt,'freeresearch_publication_figure')}
 document.querySelectorAll('[data-biodiv]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-biodiv]').forEach(x=>x.classList.toggle('active',x===b));['single','compare','accum'].forEach(k=>$('biodiv-'+k).style.display=k===b.dataset.biodiv?'block':'none')}));
 const baseRunStat=runStat;runStat=function(){baseRunStat();setTimeout(renderPublicationPlot,120)};
 
@@ -538,7 +586,7 @@ function renderTaxCompareGraph(){if(!taxCompareState||typeof Plotly==='undefined
  let layout={title:$('taxGraphTitle').value,paper_bgcolor:'#fff',plot_bgcolor:'#fff',font:{family:'Arial',size:12},margin:{l:65,r:25,t:55,b:110},xaxis:{title:$('taxGraphX').value,tickangle:-35,automargin:true},yaxis:{title:$('taxGraphY').value,range:isIndex?[0,1]:undefined,gridcolor:'#e8edf4'},barmode:type==='stack'?'stack':'group',legend:{orientation:'h',y:-.3}};Plotly.newPlot('taxComparePlot',series,layout,{responsive:true,displaylogo:false});}
 function downloadTaxCompare(){if(!taxCompareState)return;let rows=[['Index','Value','Type','Formula','Interpretation'],...taxCompareState.idx.map(x=>[x.name,x.value,x.kind,x.formula,x.desc])];download('freeresearch_two_community_indices.csv',rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n'));}
 function downloadTaxTable(){if(!taxCompareState)return;let {rows}=taxCompareState;let mode=$('taxTableMode').value,dp=Number($('taxPrecision').value),{sumA,sumB}=taxCompareState;let out=[['Taxon','Community A','Community B','Shared']];rows.forEach(r=>out.push([r.name,mode==='relative'?(sumA?100*r.a/sumA:0).toFixed(dp):mode==='presence'?(r.a>0?1:0):r.a,mode==='relative'?(sumB?100*r.b/sumB:0).toFixed(dp):mode==='presence'?(r.b>0?1:0):r.b,r.a>0&&r.b>0?'Yes':'No']));download('freeresearch_community_comparison_table.csv',out.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n'));}
-function downloadTaxGraph(fmt){if(fmt==='csv'){if(!taxCompareState)return;let d=taxGraphSeries(),out=[['Taxon / index','Community A / index value','Community B'],...d.x.map((x,i)=>[x,d.a[i],d.b?.[i]??''])];download('freeresearch_community_graph_data.csv',out.map(r=>r.join(',')).join('\n'));return;}if(typeof Plotly!=='undefined'&&taxCompareState)Plotly.downloadImage('taxComparePlot',{format:fmt,filename:'freeresearch_community_comparison',width:2200,height:1400,scale:2});}
+function downloadTaxGraph(fmt){if(fmt==='csv'){if(!taxCompareState)return;let d=taxGraphSeries(),out=[['Taxon / index','Community A / index value','Community B'],...d.x.map((x,i)=>[x,d.a[i],d.b?.[i]??''])];download('freeresearch_community_graph_data.csv',out.map(r=>r.join(',')).join('\n'));return;}if(typeof Plotly!=='undefined'&&taxCompareState)downloadPlotHighRes('taxComparePlot',fmt,'freeresearch_community_comparison');}
 </script>
 <script>
 let structureRows=[],betaState=null,gofState=false;
