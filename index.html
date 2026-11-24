@@ -50,16 +50,16 @@ main{min-width:0}.topbar{height:72px;background:#fff;border-bottom:1px solid var
     const size = dimensions(node);
     const cfg = Object.assign({}, config || {});
     layout = Object.assign({}, layout || {}, {
-      paper_bgcolor: '#0b1422', plot_bgcolor: '#0b1422',
-      font: Object.assign({}, (layout && layout.font) || {}, { color: '#ffffff' }),
-      legend: Object.assign({}, (layout && layout.legend) || {}, { font: Object.assign({}, (layout && layout.legend && layout.legend.font) || {}, { color: '#ffffff' }) }),
-      annotations: ((layout && layout.annotations) || []).map(function(a){ return Object.assign({}, a, {font:Object.assign({}, a.font || {}, {color:'#ffffff'})}); })
+      paper_bgcolor: '#ffffff', plot_bgcolor: '#ffffff',
+      font: Object.assign({}, (layout && layout.font) || {}, { color: '#17212f' }),
+      legend: Object.assign({}, (layout && layout.legend) || {}, { font: Object.assign({}, (layout && layout.legend && layout.legend.font) || {}, { color: '#17212f' }) }),
+      annotations: ((layout && layout.annotations) || []).map(function(a){ return Object.assign({}, a, {font:Object.assign({}, a.font || {}, {color:'#17212f'})}); })
     });
     ['xaxis','yaxis','xaxis2','yaxis2','xaxis3','yaxis3','xaxis4','yaxis4'].forEach(function(axisName){
       layout[axisName] = Object.assign({}, layout[axisName] || {}, {
-        color: '#ffffff', gridcolor: 'rgba(220,235,250,.22)', zerolinecolor: 'rgba(255,255,255,.55)', linecolor: 'rgba(255,255,255,.55)',
-        tickfont: Object.assign({}, (layout[axisName] && layout[axisName].tickfont) || {}, { color: '#ffffff' }),
-        title: typeof (layout[axisName] && layout[axisName].title) === 'object' ? Object.assign({}, layout[axisName].title, { font: Object.assign({}, layout[axisName].title.font || {}, { color: '#ffffff' }) }) : (layout[axisName] && layout[axisName].title)
+        color: '#263445', gridcolor: '#e4eaf1', zerolinecolor: '#aab6c4', linecolor: '#aab6c4',
+        tickfont: Object.assign({}, (layout[axisName] && layout[axisName].tickfont) || {}, { color: '#263445' }),
+        title: typeof (layout[axisName] && layout[axisName].title) === 'object' ? Object.assign({}, layout[axisName].title, { font: Object.assign({}, layout[axisName].title.font || {}, { color: '#263445' }) }) : (layout[axisName] && layout[axisName].title)
       });
     });
     cfg.toImageButtonOptions = Object.assign({}, cfg.toImageButtonOptions || {}, {
@@ -127,6 +127,21 @@ hr,.divider{border-color:#2b3d53!important}.launch{color:#70c9ee!important}
 .plot-toolbar button{background:#14273d!important;color:#c7e7f8!important;border-color:#30465f!important}
 pre,code,.code,.formula,.output,.result-box{background:#081321!important;color:#c9e5f7!important;border-color:#2b4058!important}
 @media(max-width:900px){.shell{grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid #263b54}.sidefoot{max-width:100%}.topbar{padding:0 18px}.content{padding:22px 16px 42px}}
+</style>
+
+
+<style id="freeresearch-white-results-surfaces">
+/* White scientific figure and result surfaces; the surrounding workspace stays dark. */
+.plot-area,.community-graph-card,.community-graph-card .plot-area,.plotly-graph-div,.js-plotly-plot,.plot-container{background:#fff!important;color:#17212f!important}
+.plot-area{border-radius:8px}
+.table-wrap,.tablewrap,table,.data-table{background:#fff!important;color:#17212f!important;border-color:#d5dee8!important}
+table{border-collapse:collapse!important}
+thead th,th{background:#f1f5f9!important;color:#17212f!important;border-color:#d5dee8!important}
+tbody td,td{background:#fff!important;color:#17212f!important;border-color:#dbe3ec!important}
+tbody tr:nth-child(even),tr:nth-child(even){background:#f8fafc!important}
+tbody tr:nth-child(even) td{background:#f8fafc!important}
+table input,table select,table textarea,.table-wrap input,.tablewrap input{background:#fff!important;color:#17212f!important;border-color:#cbd5e1!important}
+.metric,.result-box,.output{color:#17212f}
 </style>
 
 </head>
