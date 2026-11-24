@@ -176,6 +176,41 @@ table input,table select,table textarea,.table-wrap input,.tablewrap input{backg
 .metric,.result-box,.output{color:#17212f}
 </style>
 
+
+<style id="freeresearch-white-page-result-text-fix">
+/* On white workspace pages, restore readable dark text in result metrics and outputs.
+   The dark-dashboard rule used !important and otherwise hid these values on white cards. */
+body:not(.dashboard-mode) .results,
+body:not(.dashboard-mode) .results p,
+body:not(.dashboard-mode) .results li,
+body:not(.dashboard-mode) .results td,
+body:not(.dashboard-mode) .results th,
+body:not(.dashboard-mode) .results .hint,
+body:not(.dashboard-mode) .results .metric span,
+body:not(.dashboard-mode) .results .metric strong,
+body:not(.dashboard-mode) .results .stat .num,
+body:not(.dashboard-mode) .results .stat .label,
+body:not(.dashboard-mode) .result-value,
+body:not(.dashboard-mode) .analysis-value,
+body:not(.dashboard-mode) .metric span,
+body:not(.dashboard-mode) .metric strong,
+body:not(.dashboard-mode) .result-box,
+body:not(.dashboard-mode) .output,
+body:not(.dashboard-mode) #biometrics,
+body:not(.dashboard-mode) #biometrics * {
+  color: #172235 !important;
+}
+body:not(.dashboard-mode) .results .metric,
+body:not(.dashboard-mode) #biometrics .metric {
+  background: #ffffff !important;
+  border-color: #e4eaf2 !important;
+}
+body:not(.dashboard-mode) .results .metric span,
+body:not(.dashboard-mode) #biometrics .metric span {
+  color: #718096 !important;
+}
+</style>
+
 </head>
 <body class="dashboard-mode">
 <div class="shell">
