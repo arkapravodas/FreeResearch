@@ -42,6 +42,18 @@ main{min-width:0}.topbar{height:72px;background:#fff;border-bottom:1px solid var
     const node = graphNode(gd);
     const size = dimensions(node);
     const cfg = Object.assign({}, config || {});
+    layout = Object.assign({}, layout || {}, {
+      paper_bgcolor: '#0b1422', plot_bgcolor: '#0b1422',
+      font: Object.assign({}, (layout && layout.font) || {}, { color: '#dce8f7' }),
+      legend: Object.assign({}, (layout && layout.legend) || {}, { font: Object.assign({}, (layout && layout.legend && layout.legend.font) || {}, { color: '#c6d5e8' }) })
+    });
+    ['xaxis','yaxis','xaxis2','yaxis2','xaxis3','yaxis3'].forEach(function(axisName){
+      if (layout[axisName]) layout[axisName] = Object.assign({}, layout[axisName], {
+        color: '#c6d5e8', gridcolor: '#26364b', zerolinecolor: '#40536c', linecolor: '#40536c',
+        tickfont: Object.assign({}, layout[axisName].tickfont || {}, { color: '#c6d5e8' }),
+        title: typeof layout[axisName].title === 'object' ? Object.assign({}, layout[axisName].title, { font: Object.assign({}, layout[axisName].title.font || {}, { color: '#dce8f7' }) }) : layout[axisName].title
+      });
+    });
     cfg.toImageButtonOptions = Object.assign({}, cfg.toImageButtonOptions || {}, {
       format: 'png',
       filename: 'freeresearch_figure_high_resolution',
@@ -77,7 +89,39 @@ main{min-width:0}.topbar{height:72px;background:#fff;border-bottom:1px solid var
 .plot-toolbar button{border:1px solid var(--line);background:#f7faff;padding:8px 11px;border-radius:8px;color:#315477;font-weight:650}
 .answer-steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
 @media(max-width:720px){.pro-grid,.answer-steps{grid-template-columns:1fr}.plot-area{height:340px}}
-</style></head>
+</style>
+<style id="freeresearch-dark-cinematic-theme">
+:root{color-scheme:dark;--bg:#070d17;--panel:#101b2b;--ink:#e7eef8;--muted:#9aacc3;--line:#26364b;--nav:#050b14;--accent:#56b8e9;--teal:#42d0c0;--soft:#142b40;--shadow:0 14px 38px rgba(0,0,0,.28)}
+html,body{background:#070d17!important;color:#e7eef8!important}
+body{background-image:radial-gradient(ellipse at 78% 0%,rgba(28,104,150,.18),transparent 34%),radial-gradient(ellipse at 12% 38%,rgba(91,58,154,.11),transparent 30%),linear-gradient(145deg,#070d17 0%,#0a1422 55%,#080f1b 100%)!important}
+.shell{background:transparent}
+aside{background:linear-gradient(180deg,#050b14 0%,#091525 100%)!important;border-right:1px solid #1c3047;box-shadow:12px 0 35px rgba(0,0,0,.18)}
+.brand strong{color:#f2f7ff}.brand small{color:#8da7c4}
+.navlabel{color:#68829f}.nav button{color:#b6c7db}.nav button.active,.nav button:hover{background:linear-gradient(90deg,rgba(53,142,197,.24),rgba(67,91,151,.18))!important;color:#fff!important;box-shadow:inset 2px 0 #58c6e8}
+.sidefoot{background:rgba(16,31,49,.75);border-color:#29415d!important;color:#9fb3ca!important;display:flex;flex-wrap:wrap;align-items:center;gap:3px 10px}
+.linkedin-icon{margin-left:auto;width:32px;height:32px;display:grid;place-items:center;border-radius:9px;color:#d9f1ff;background:#0a66c2;border:1px solid rgba(160,215,255,.35);transition:transform .18s ease,filter .18s ease}
+.linkedin-icon:hover{transform:translateY(-2px);filter:brightness(1.15)}.linkedin-icon svg{width:18px;height:18px;fill:currentColor}
+.topbar{background:rgba(10,20,34,.92)!important;border-bottom:1px solid #24364d!important;backdrop-filter:blur(14px);color:#e7eef8}
+.crumb{color:#9aacc3!important}.freepill{background:#10352f!important;color:#75e1c6!important}.avatar{background:#17304b!important;color:#9bd9ff!important}
+.content{color:#e7eef8}.eyebrow{color:#6bc8ed!important}.heading h1{color:#f2f7ff}.heading p{color:#a6b7cc!important}
+.card,.labcard,.control,.results,.metric,.panel,.workspace>div,.tab-panel,.analysis-panel{background:linear-gradient(155deg,rgba(19,33,52,.97),rgba(13,24,39,.98))!important;border-color:#293c54!important;color:#e4edf8!important;box-shadow:var(--shadow)!important}
+.card h2,.card h3,.card h4,.sectiontitle,.control h3,.results h3,.labbody h3{color:#edf5ff!important}
+.sub,.hint,.stat .label,.labbody p{color:#9cafc5!important}.stat .num{color:#f1f7ff}
+.stat .bubble,.labicon{background:#172f49!important;color:#8ddcff!important}.tag{background:#1a3047!important;color:#a9c4dd!important}
+.btn{background:linear-gradient(110deg,#167bb4,#2566b2)!important;color:#fff!important;border:1px solid rgba(126,203,245,.22)!important;box-shadow:0 5px 16px rgba(0,0,0,.2)}
+.btn.secondary{background:#1b3048!important;color:#c6e7fb!important}.btn.ghost{background:transparent!important;color:#b7c9de!important;border-color:#40546d!important}.btn.teal{background:linear-gradient(110deg,#087f7b,#159b91)!important}
+button:not(.btn):not(.nav button),.plot-toolbar button{background:#172a40;color:#cfe0f2;border-color:#354b65}
+.field label{color:#b9c9dc!important}.field input,.field select,.field textarea,.pro-grid input,.pro-grid select,input,select,textarea{background:#091525!important;color:#e5eef9!important;border-color:#30445d!important}
+input::placeholder,textarea::placeholder{color:#7188a2!important}.field input:focus,.field select:focus,.field textarea:focus{border-color:#58bde9!important;box-shadow:0 0 0 3px rgba(70,174,220,.16)!important}
+.table-wrap,table,.data-table{background:#0d1929!important;color:#dce8f7!important;border-color:#2b4059!important}th{background:#172b42!important;color:#cce7f8!important}td{border-color:#293d54!important}tr:nth-child(even){background:rgba(28,48,70,.34)!important}
+hr,.divider{border-color:#2b3d53!important}.launch{color:#70c9ee!important}
+.plot-area,.community-graph-card{background:#0b1422!important;border-color:#2a3c53!important}.community-graph-card{box-shadow:0 12px 30px rgba(0,0,0,.22)!important}
+.plot-toolbar button{background:#14273d!important;color:#c7e7f8!important;border-color:#30465f!important}
+pre,code,.code,.formula,.output,.result-box{background:#081321!important;color:#c9e5f7!important;border-color:#2b4058!important}
+@media(max-width:900px){.shell{grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid #263b54}.sidefoot{max-width:100%}.topbar{padding:0 18px}.content{padding:22px 16px 42px}}
+</style>
+
+</head>
 <body>
 <div class="shell">
 <aside>
@@ -94,7 +138,11 @@ main{min-width:0}.topbar{height:72px;background:#fff;border-bottom:1px solid var
   <button data-view="coming"><span class="ico">▤</span>Gel &amp; blot studio</button>
   <button data-view="coming"><span class="ico">⌖</span>EasyQGIS</button>
  </nav></div>
- <div class="sidefoot">Free-first · Browser-based<br>Calculations run locally in your browser.</div>
+ <div class="sidefoot">Free-first · Browser-based<br>Calculations run locally in your browser.
+    <a class="linkedin-icon" href="https://www.linkedin.com/in/arkapravodas/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn profile" title="LinkedIn">
+      <svg viewBox="0 0 24 24" role="img" aria-hidden="true"><path d="M5.2 3.5a2.1 2.1 0 1 0 0 4.2 2.1 2.1 0 0 0 0-4.2ZM3.4 9.2H7v11.3H3.4V9.2Zm5.8 0h3.4v1.55h.05c.47-.89 1.62-1.83 3.34-1.83 3.57 0 4.23 2.35 4.23 5.4v6.18h-3.56v-5.48c0-1.31-.02-3-1.83-3-1.83 0-2.11 1.43-2.11 2.9v5.58H9.2V9.2Z"/></svg>
+    </a>
+  </div>
 </aside>
 <main>
  <header class="topbar"><div class="crumb">FreeResearch <span style="color:#b9c4d1">/</span> <span id="crumb">Dashboard</span></div><div class="topright"><span class="freepill">100% FREE CORE</span><div class="avatar">FR</div></div></header>
