@@ -209,6 +209,43 @@ body:not(.dashboard-mode) .results .metric span,
 body:not(.dashboard-mode) #biometrics .metric span {
   color: #718096 !important;
 }
+
+/* v1.3 visibility correction: white result surfaces must use dark readable text.
+   Scope is limited to lab result panels; dashboard styling is untouched. */
+.results .metric,
+.results .metrics .metric {
+  background: #ffffff !important;
+  color: #243247 !important;
+  border: 1px solid #dce5ef !important;
+}
+.results .metric span,
+.results .metric strong,
+.results .metrics .metric span,
+.results .metrics .metric strong {
+  color: #243247 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  -webkit-text-fill-color: #243247 !important;
+}
+.results table th,
+.results table td,
+.results table th *,
+.results table td * {
+  color: #243247 !important;
+  -webkit-text-fill-color: #243247 !important;
+}
+.results table th { background: #f3f6fa !important; }
+.results table td { background: #ffffff !important; }
+.results h2, .results h3, .results p, .results label,
+.results .sub, .results .hint, .results .sectiontitle {
+  color: #243247 !important;
+}
+.results .notice {
+  color: #785d20 !important;
+  -webkit-text-fill-color: #785d20 !important;
+}
+.results .btn, .results button { -webkit-text-fill-color: currentColor !important; }
+
 </style>
 
 </head>
